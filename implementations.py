@@ -2,34 +2,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 from helpers import *
-from grid_search import generate_w, get_best_parameters
-from plots import grid_visualization
 from plots import gradient_descent_visualization
 from ipywidgets import IntSlider, interact
 
 
 def generic_regression(y, tx, initial_w, max_iters, gamma, batch_size, grad, loss):
-    ws = [initial_w]
-    losses = []
-    w = initial_w
-    for n_iter in range(max_iters):
-        g = grad(y, tx, w, batch_size)
-        l = loss(y, tx, w)
+  ws = [initial_w]
+  losses = []
+  w = initial_w
+  for n_iter in range(max_iters):
+    g = grad(y, tx, w, batch_size)
+    l = loss(y, tx, w)
 
-        wold = w
-        w = w - gamma * g
-        if np.linalg.norm(w - wold) == 0:
-            break
+    wold = w
+    w = w - gamma * g
+    if np.linalg.norm(w - wold) == 0:
+      break
 
-        ws.append(w)
-        losses.append(l)
-        # print(
-        #    "GD iter. {bi}/{ti}: loss={l}, w0={w0}, w1={w1}".format(
-        #        bi=n_iter, ti=max_iters - 1, l=l, w0=w[0], w1=w[1]
-        #    )
-        # )
-
-    return losses, ws
+    ws.append(w)
+    losses.append(l)
+    # print(
+    #    "GD iter. {bi}/{ti}: loss={l}, w0={w0}, w1={w1}".format(
+    #        bi=n_iter, ti=max_iters - 1, l=l, w0=w[0], w1=w[1]
+    #    )
+    # )
+  
+  return losses, ws
 
 
 def mse_loss(y, tx, w):
