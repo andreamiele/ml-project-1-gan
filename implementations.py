@@ -31,22 +31,27 @@ def generic_regression(y, tx, initial_w, max_iters, gamma, batch_size, grad, los
 
 
 def mse_loss(y, tx, w):
-    return (np.linalg.norm(y - np.dot(tx, w), ord=2) ** 2) / (2 * y.shape[0])
+  return (np.linalg.norm(y - np.dot(tx, w), ord=2) ** 2) / (2 * y.shape[0])
 
 
 def mse_gradient(y, tx, w, batch_size):
-    return -np.dot(np.transpose(tx), y - np.dot(tx, w)) / y.shape[0]
+  return -np.dot(np.transpose(tx), y - np.dot(tx, w)) / y.shape[0]
 
 
 def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
-    return generic_regression(
-        y, tx, initial_w, max_iters, gamma, -1, mse_gradient, mse_loss
-    )
+  return generic_regression(
+    y, tx, initial_w, max_iters, gamma, -1, mse_gradient, mse_loss
+  )
 
 
 def mse_stoch_gradient(y, tx, w, batch_size):
-    stochastic_grad = np.zeros((2,))
-    for mini_batch_y, mini_batch_x in batch_iter(y, tx, batch_size):
-        tmp = mini_batch_y - np.dot(mini_batch_x, w)
-        stochastic_grad += np.array([tmp[0], tmp[0] * mini_batch_x[0][1]])
-    return -stochastic_grad / batch_size
+  stochastic_grad = np.zeros((2,))
+  for mini_batch_y, mini_batch_x in batch_iter(y, tx, batch_size):
+    tmp = mini_batch_y - np.dot(mini_batch_x, w)
+    stochastic_grad += np.array([tmp[0], tmp[0] * mini_batch_x[0][1]])
+  return -stochastic_grad / batch_size
+
+def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
+  return generic_regression(
+      y, tx, initial_w, max_iters, gamma, 1, mse_stoch_gradient, mse_loss
+    )
