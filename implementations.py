@@ -31,7 +31,7 @@ def generic_regression(y, tx, initial_w, max_iters, gamma, batch_size, grad, los
 
 
 def mse_loss(y, tx, w):
-    return np.linalg.norm(y - np.dot(tx, w), ord=2) ** 2
+    return (np.linalg.norm(y - np.dot(tx, w), ord=2) ** 2) / (2 * y.shape[0])
 
 
 def mse_gradient(y, tx, w, batch_size):
