@@ -2,7 +2,7 @@
 
 # CS 433 - Project 1
 
-**Team GAN** - Gabriel Dehame, Andrea Miele, Nico Moyne
+**Team GAN** - Gabriel Dehame, Andrea Miele, Nicolas Moyne
 
 # Introduction
 
