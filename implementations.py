@@ -75,3 +75,19 @@ def ridge_regression(y, tx, lambda_):
     w = np.linalg.solve(a, b)
     loss = mae_loss(y, tx, w)
     return w, loss
+
+def logreg_loss(y, tx, w):
+    yp = 1/(1 + np.exp(np.dot(tx, w)))
+    loss = -np.mean(y*(np.log(yp)) - (1-y)*np.log(1-yp))
+    return loss
+
+def logreg_grad(y, tx, w, batch_size):
+    """Méthode de Newton Raphson"""
+    yp = 1/(1 + np.exp(np.dot(tx, w)))
+    g = -np.dot(np.dot(np.invert(np.dot(np.transpose(tx), np.dot(w, tx))), tx), (y - yp))
+    return g
+
+def logreg_gd(y, tx, initial_w, max_iters, gamma):
+    return generic_regression(
+        y, tx, initial_w, max_iters, gamma, -1, logreg_grad, logreg_loss
+    )
