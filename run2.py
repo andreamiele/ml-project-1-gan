@@ -17,6 +17,6 @@ with open("submi", "w") as csvfile:
     fieldnames = ["Id", "Prediction"]
     writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
     writer.writeheader()
-    for r1 in range(568238):
+    for r1 in range(1, 568239):
         writer.writerow({"Id": int(r1), "Prediction": 0})
 # Exception: All expected Ids were not present in the submission. Please cross check to ensure that the submitted file contains a row each for all the data points in the test set.
