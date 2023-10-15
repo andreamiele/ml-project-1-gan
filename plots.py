@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def prediction(w0, w1, mean_x, std_x):
     """Get the regression line from the model."""
     x = np.arange(1.2, 2, 0.01)
