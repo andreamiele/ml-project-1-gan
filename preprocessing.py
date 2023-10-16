@@ -393,7 +393,10 @@ for ind, line in enumerate(x):
 x = x[indexLinesToKeep, :]
 y = y[indexLinesToKeep]
 
+<<<<<<< HEAD
 print(x.shape)
+=======
+>>>>>>> 044af198245428d6839db108ec2ec77829380070
 # Adjust value to bring them closer to 0 to avoid overflows
 
 x[:, mapCols[0]][np.where(x == 1)[0]] = 0
@@ -410,7 +413,11 @@ x[:, mapCols[2]][np.where(x == 3)[0]] = 0
 x[:, mapCols[2]][np.where(x == 2)[0]] = 0
 tmp = []
 for ind, line in enumerate(x):
+<<<<<<< HEAD
     if line[mapCols[2]] == 9:
+=======
+    if line[mapCols[2]] != 9:
+>>>>>>> 044af198245428d6839db108ec2ec77829380070
         tmp.append(ind)
 x = x[tmp, :]
 y = y[tmp]
@@ -546,8 +553,6 @@ for ind, line in enumerate(x):
         tmp.append(ind)
 x = x[tmp, :]
 y = y[tmp]
-
-print(x.shape)
 
 np.savetxt("x_train_processed.csv", x)
 np.savetxt("y_train_processed.csv", y)
