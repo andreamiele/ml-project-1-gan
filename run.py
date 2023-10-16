@@ -12,12 +12,41 @@ y_test = y[split:]
 
 initial_w = np.zeros(x_train.shape[1])
 
-loss, w = logreg_gd(y_train, x_train, initial_w, 500, 0.01)
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
 
-print("Train loss: ", loss, "Test loss: ", logreg_loss(y_test, x_test, w))
+def train_logistic_regression(X, y, learning_rate, num_iterations):
+    num_samples, num_features = X.shape
+    weights = np.zeros(num_features)
+
+    for epoch in range(num_iterations):
+        model = np.dot(X, weights)
+        predictions = sigmoid(model)
+        gradient = (1 / num_samples) * np.dot(X.T, (predictions - y))
+        weights -= learning_rate * gradient
+        if (epoch % 100 == 0) or (epoch == num_iterations - 1):
+            print(f"Epoch {epoch}/{num_iterations - 1}")
+
+    return weights
+
+
+def predict(X, weights):
+    model = np.dot(X, weights)
+    predictions = sigmoid(model)
+    return (predictions >= 0.5).astype(int)
+
+# Train the logistic regression model
+learning_rate = 0.01
+num_iterations = 1000
+weights = train_logistic_regression(x_train, y_train, learning_rate, num_iterations)
+
+# Make predictions using the trained model
+y_pred = predict(x_test, weights)
+
+print("Diff/size: ", np.sum(np.abs(y_pred-y_test))/y_pred.shape[0])
 
 np.savetxt(
     "submission.csv",
-    np.dot(x_test, w),
+    y_pred,
     header="_MICHD",
 )
