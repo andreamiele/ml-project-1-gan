@@ -15,7 +15,6 @@ for col in x_test:
             card += 1
             avg += v
     if card != 0:
-        print(avg/card)
         col = np.where(np.isnan(col), avg / card, col)
 x_test = x_test.T
 
