@@ -83,7 +83,7 @@ def logreg_grad(y, tx, w, batch_size):
     return g
 
 
-def logreg_gd(y, tx, initial_w, max_iters, gamma):
+def logistic_regression(y, tx, initial_w, max_iters, gamma):
     return generic_regression(
         y, tx, initial_w, max_iters, gamma, -1, logreg_grad, logreg_loss
     )
