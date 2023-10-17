@@ -1,7 +1,9 @@
 from helpers import *
 from implementations import *
 
-y_train = np.genfromtxt("y_train_processed.csv", delimiter=" ", skip_header=0, usecols=0)
+y_train = np.genfromtxt(
+    "y_train_processed.csv", delimiter=" ", skip_header=0, usecols=0
+)
 x_train = np.genfromtxt("x_train_processed.csv", delimiter=" ", skip_header=0)
 x_test = np.genfromtxt("x_test_processed.csv", delimiter=" ", skip_header=0)
 ids = np.genfromtxt("test_ids.csv", delimiter=",")
@@ -20,8 +22,10 @@ x_test = x_test.T
 
 initial_w = np.zeros(x_train.shape[1])
 
+
 def sigmoid(z):
-    return 1 / (1 + np.exp(-z))
+    return np.exp(z) / (1 + np.exp(z))
+
 
 def train_logistic_regression(X, y, learning_rate, num_iterations):
     num_samples, num_features = X.shape
@@ -42,6 +46,7 @@ def predict(X, weights):
     model = np.dot(X, weights)
     predictions = sigmoid(model)
     return (predictions >= 0.5).astype(int)
+
 
 # Train the logistic regression model
 learning_rate = 0.01
