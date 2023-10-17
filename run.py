@@ -49,7 +49,7 @@ def predict(X, weights):
 
 
 # Train the logistic regression model
-learning_rate = 0.001
+learning_rate = 0.01
 num_iterations = 1000
 weights = train_logistic_regression(x_train, y_train, learning_rate, num_iterations)
 
