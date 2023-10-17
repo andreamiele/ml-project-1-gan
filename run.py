@@ -1,14 +1,23 @@
 from helpers import *
 from implementations import *
 
-y = np.genfromtxt("y_train_processed.csv", delimiter=" ", skip_header=0, usecols=0)
-x = np.genfromtxt("x_train_processed.csv", delimiter=" ", skip_header=0)
+y_train = np.genfromtxt("y_train_processed.csv", delimiter=" ", skip_header=0, usecols=0)
+x_train = np.genfromtxt("x_train_processed.csv", delimiter=" ", skip_header=0)
+x_test = np.genfromtxt("x_test_processed.csv", delimiter=" ", skip_header=0)
+ids = np.genfromtxt("test_ids.csv", delimiter=",")
 
-split = int(np.floor(3 * y.shape[0] / 4))
-x_train = x[:split, :]
-y_train = y[:split]
-x_test = x[split:, :]
-y_test = y[split:]
+x_test = x_test.T
+for col in x_test:
+    avg = 0
+    card = 0
+    for v in col:
+        if not np.isnan(v):
+            card += 1
+            avg += v
+    if card != 0:
+        print(avg/card)
+        col = np.where(np.isnan(col), avg / card, col)
+x_test = x_test.T
 
 initial_w = np.zeros(x_train.shape[1])
 
@@ -42,11 +51,6 @@ weights = train_logistic_regression(x_train, y_train, learning_rate, num_iterati
 
 # Make predictions using the trained model
 y_pred = predict(x_test, weights)
+y_pred = np.where(y_pred == 0, -1, y_pred)
 
-print("Diff/size: ", np.sum(np.abs(y_pred-y_test))/y_pred.shape[0])
-
-np.savetxt(
-    "submission.csv",
-    y_pred,
-    header="_MICHD",
-)
+create_csv_submission(ids, y_pred, "y_pred.csv")

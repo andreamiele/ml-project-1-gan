@@ -16,6 +16,7 @@
 #
 #  ==============================================================================
 import numpy as np
+from helpers import *
 
 columnsToKeep = [
     "_RFHYPE5",
@@ -365,8 +366,8 @@ columns = [
     "_AIDTST3",
 ]
 
-y = np.genfromtxt("dataset/y_train.csv", delimiter=",", skip_header=1, usecols=0)
-x = np.genfromtxt("dataset/x_train.csv", delimiter=",", skip_header=1)
+x, x_test, y, _,test_ids = load_csv_data("dataset/")
+test_ids = test_ids.astype(dtype=int)
 
 # Keep only the meaningful columns
 
@@ -392,6 +393,7 @@ for ind, line in enumerate(x):
 
 x = x[indexLinesToKeep, :]
 y = y[indexLinesToKeep]
+x_test = x_test[:, indexColumnsToKeep]
 
 # Adjust value to bring them closer to 0 to avoid overflows
 
@@ -548,3 +550,5 @@ y = y[tmp]
 
 np.savetxt("x_train_processed.csv", x)
 np.savetxt("y_train_processed.csv", y)
+np.savetxt("x_test_processed.csv", x_test)
+np.savetxt("test_ids.csv", test_ids)
