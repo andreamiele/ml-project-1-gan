@@ -19,7 +19,7 @@ x = imp.transform(x)
 imp = imp.fit(x_test)
 x_test = imp.transform(x_test)
 
-fs = SelectKBest(score_func=f_classif, k=40)
+fs = SelectKBest(score_func=f_classif, k=100)
 X_selected = fs.fit_transform(x, y)
 f = fs.get_support(1)
 x = x[:, f]
