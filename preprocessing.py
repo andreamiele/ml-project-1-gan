@@ -400,6 +400,11 @@ x_test = x_test[:, indexColumnsToKeep]
 x[:, mapCols[0]][np.where(x == 1)[0]] = 0
 
 x[:, mapCols[1]][np.where(x == 2)[0]] = 0
+
+x_test[:, mapCols[0]][np.where(x_test == 1)[0]] = 0
+
+x_test[:, mapCols[1]][np.where(x_test == 2)[0]] = 0
+
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[1]] != 7 and line[mapCols[1]] != 9:
@@ -409,6 +414,8 @@ y = y[tmp]
 
 x[:, mapCols[2]][np.where(x == 3)[0]] = 0
 x[:, mapCols[2]][np.where(x == 2)[0]] = 0
+x_test[:, mapCols[2]][np.where(x_test == 3)[0]] = 0
+x_test[:, mapCols[2]][np.where(x_test == 2)[0]] = 0
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[2]] != 9:
@@ -419,6 +426,11 @@ y = y[tmp]
 x[:, mapCols[3]] /= 100
 
 x[:, mapCols[4]][np.where(x == 2)[0]] = 0
+
+x_test[:, mapCols[3]] /= 100
+
+x_test[:, mapCols[4]][np.where(x_test == 2)[0]] = 0
+
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[4]] != 7 and line[mapCols[4]] != 9:
@@ -427,6 +439,7 @@ x = x[tmp, :]
 y = y[tmp]
 
 x[:, mapCols[5]][np.where(x == 2)[0]] = 0
+x_test[:, mapCols[5]][np.where(x_test == 2)[0]] = 0
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[5]] != 7 and line[mapCols[5]] != 9:
@@ -438,6 +451,10 @@ x[:, mapCols[6]][np.where(x == 2)[0]] = 0
 x[:, mapCols[6]][np.where(x == 3)[0]] = 0
 x[:, mapCols[6]][np.where(x == 1)[0]] = 2
 x[:, mapCols[6]][np.where(x == 4)[0]] = 1
+x_test[:, mapCols[6]][np.where(x_test == 2)[0]] = 0
+x_test[:, mapCols[6]][np.where(x_test == 3)[0]] = 0
+x_test[:, mapCols[6]][np.where(x_test == 1)[0]] = 2
+x_test[:, mapCols[6]][np.where(x_test == 4)[0]] = 1
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[6]] != 7 and line[mapCols[6]] != 9:
@@ -446,6 +463,7 @@ x = x[tmp, :]
 y = y[tmp]
 
 x[:, mapCols[7]][np.where(x == 2)[0]] = 0
+x_test[:, mapCols[7]][np.where(x_test == 2)[0]] = 0
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[7]] != 9:
@@ -454,6 +472,7 @@ x = x[tmp, :]
 y = y[tmp]
 
 x[:, mapCols[8]][np.where(x == 2)[0]] = 0
+x_test[:, mapCols[8]][np.where(x_test == 2)[0]] = 0
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[8]] != 9:
@@ -462,6 +481,7 @@ x = x[tmp, :]
 y = y[tmp]
 
 x[:, mapCols[9]][np.where(x == 2)[0]] = 0
+x_test[:, mapCols[9]][np.where(x_test == 2)[0]] = 0
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[9]] != 9:
@@ -471,6 +491,8 @@ y = y[tmp]
 
 x[:, mapCols[10]][np.where(x == 1)[0]] = 0
 x[:, mapCols[10]][np.where(x == 2)[0]] = 1
+x_test[:, mapCols[10]][np.where(x_test == 1)[0]] = 0
+x_test[:, mapCols[10]][np.where(x_test == 2)[0]] = 1
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[10]] != 9:
@@ -479,6 +501,7 @@ x = x[tmp, :]
 y = y[tmp]
 
 x[:, mapCols[11]][np.where(x == 2)[0]] = 0
+x_test[:, mapCols[11]][np.where(x_test == 2)[0]] = 0
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[11]] != 7 and line[mapCols[11]] != 9:
@@ -487,6 +510,7 @@ x = x[tmp, :]
 y = y[tmp]
 
 x[:, mapCols[12]][np.where(x == 2)[0]] = 0
+x_test[:, mapCols[12]][np.where(x_test == 2)[0]] = 0
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[12]] != 7 and line[mapCols[12]] != 9:
@@ -502,6 +526,7 @@ x = x[tmp, :]
 y = y[tmp]
 
 x[:, mapCols[14]][np.where(x == 88)[0]] = 0
+x_test[:, mapCols[14]][np.where(x_test == 88)[0]] = 0
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[14]] != 77 and line[mapCols[14]] != 99:
@@ -510,6 +535,7 @@ x = x[tmp, :]
 y = y[tmp]
 
 x[:, mapCols[15]][np.where(x == 88)[0]] = 0
+x_test[:, mapCols[15]][np.where(x_test == 88)[0]] = 0
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[15]] != 77 and line[mapCols[15]] != 99:
@@ -518,6 +544,7 @@ x = x[tmp, :]
 y = y[tmp]
 
 x[:, mapCols[16]][np.where(x == 2)[0]] = 0
+x_test[:, mapCols[16]][np.where(x_test == 2)[0]] = 0
 tmp = []
 for ind, line in enumerate(x):
     if line[mapCols[16]] != 7 and line[mapCols[16]] != 9:
@@ -526,6 +553,7 @@ x = x[tmp, :]
 y = y[tmp]
 
 x[:, mapCols[17]][np.where(x == 2)[0]] = 0
+x_test[:, mapCols[17]][np.where(x_test == 2)[0]] = 0
 
 tmp = []
 for ind, line in enumerate(x):
