@@ -45,16 +45,16 @@ def train_logistic_regression(X, y, learning_rate, num_iterations):
 def predict(X, weights):
     model = np.dot(X, weights)
     predictions = sigmoid(model)
-    return (predictions >= 0.5).astype(int)
+    return predictions
 
 
 # Train the logistic regression model
-learning_rate = 0.01
+learning_rate = 0.001
 num_iterations = 1000
 weights = train_logistic_regression(x_train, y_train, learning_rate, num_iterations)
 
 # Make predictions using the trained model
 y_pred = predict(x_test, weights)
-y_pred = np.where(y_pred == 0, -1, y_pred)
+y_pred = np.where(y_pred <= 0.5, -1, 1)
 
 create_csv_submission(ids, y_pred, "y_pred.csv")

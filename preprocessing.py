@@ -7,7 +7,7 @@
 # Author: Andrea Miele (andrea.miele.pro@gmail.com, https://www.andreamiele.fr)
 # GitHub: https://www.github.com/andreamiele
 # -----
-# Last Modified: Monday, 16th October 2023 1:46:21 pm
+# Last Modified: Tuesday, 17th October 2023 2:55:13 pm
 # Modified By: Andrea Miele (andrea.miele.pro@gmail.com)
 # -----
 #
@@ -366,7 +366,7 @@ columns = [
     "_AIDTST3",
 ]
 
-x, x_test, y, _,test_ids = load_csv_data("dataset/")
+x, x_test, y, _, test_ids = load_csv_data("dataset/")
 test_ids = test_ids.astype(dtype=int)
 
 # Keep only the meaningful columns
