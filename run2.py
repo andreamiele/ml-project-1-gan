@@ -9,8 +9,23 @@ from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
 
+
 x, x_test, y, _, test_ids = load_csv_data("dataset/")
 test_ids = test_ids.astype(dtype=int)
+
+
+from sklearn.model_selection import train_test_split
+
+
+def create_train_test_split(X, y, test_size=0.25, random_state=42):
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state
+    )
+    return X_train, X_test, y_train, y_test
+
+
+x, x_test, y, y_test = create_train_test_split(x, y)
+
 
 imp = SimpleImputer(missing_values=np.nan, strategy="mean")
 imp = imp.fit(x)
@@ -18,370 +33,23 @@ x = imp.transform(x)
 
 imp = imp.fit(x_test)
 x_test = imp.transform(x_test)
-
-fs = SelectKBest(score_func=f_classif, k=100)
+"""
+fs = SelectKBest(score_func=f_classif, k=320)
 X_selected = fs.fit_transform(x, y)
 f = fs.get_support(1)
 x = x[:, f]
 x_test = x_test[:, f]
-
+"""
 print(x.shape)
 print(y.shape)
 print(x_test.shape)
-'''
-columnsToKeep = [
-    "_RFHYPE5",
-    "TOLDHI2",
-    "_CHOLCHK",
-    "_BMI5",
-    "SMOKE100",
-    "CVDSTRK3",
-    "DIABETE3",
-    "_TOTINDA",
-    "_FRTLT1",
-    "_VEGLT1",
-    "_RFDRHV5",
-    "HLTHPLN1",
-    "MEDCOST",
-    "GENHLTH",
-    "MENTHLTH",
-    "PHYSHLTH",
-    "DIFFWALK",
-    "SEX",
-    "_AGEG5YR",
-    "EDUCA",
-    "INCOME2",
-]
-
-columns = [
-    "_STATE",
-    "FMONTH",
-    "IDATE",
-    "IMONTH",
-    "IDAY",
-    "IYEAR",
-    "DISPCODE",
-    "SEQNO",
-    "_PSU",
-    "CTELENUM",
-    "PVTRESD1",
-    "COLGHOUS",
-    "STATERES",
-    "CELLFON3",
-    "LADULT",
-    "NUMADULT",
-    "NUMMEN",
-    "NUMWOMEN",
-    "CTELNUM1",
-    "CELLFON2",
-    "CADULT",
-    "PVTRESD2",
-    "CCLGHOUS",
-    "CSTATE",
-    "LANDLINE",
-    "HHADULT",
-    "GENHLTH",
-    "PHYSHLTH",
-    "MENTHLTH",
-    "POORHLTH",
-    "HLTHPLN1",
-    "PERSDOC2",
-    "MEDCOST",
-    "CHECKUP1",
-    "BPHIGH4",
-    "BPMEDS",
-    "BLOODCHO",
-    "CHOLCHK",
-    "TOLDHI2",
-    "CVDSTRK3",
-    "ASTHMA3",
-    "ASTHNOW",
-    "CHCSCNCR",
-    "CHCOCNCR",
-    "CHCCOPD1",
-    "HAVARTH3",
-    "ADDEPEV2",
-    "CHCKIDNY",
-    "DIABETE3",
-    "DIABAGE2",
-    "SEX",
-    "MARITAL",
-    "EDUCA",
-    "RENTHOM1",
-    "NUMHHOL2",
-    "NUMPHON2",
-    "CPDEMO1",
-    "VETERAN3",
-    "EMPLOY1",
-    "CHILDREN",
-    "INCOME2",
-    "INTERNET",
-    "WEIGHT2",
-    "HEIGHT3",
-    "PREGNANT",
-    "QLACTLM2",
-    "USEEQUIP",
-    "BLIND",
-    "DECIDE",
-    "DIFFWALK",
-    "DIFFDRES",
-    "DIFFALON",
-    "SMOKE100",
-    "SMOKDAY2",
-    "STOPSMK2",
-    "LASTSMK2",
-    "USENOW3",
-    "ALCDAY5",
-    "AVEDRNK2",
-    "DRNK3GE5",
-    "MAXDRNKS",
-    "FRUITJU1",
-    "FRUIT1",
-    "FVBEANS",
-    "FVGREEN",
-    "FVORANG",
-    "VEGETAB1",
-    "EXERANY2",
-    "EXRACT11",
-    "EXEROFT1",
-    "EXERHMM1",
-    "EXRACT21",
-    "EXEROFT2",
-    "EXERHMM2",
-    "STRENGTH",
-    "LMTJOIN3",
-    "ARTHDIS2",
-    "ARTHSOCL",
-    "JOINPAIN",
-    "SEATBELT",
-    "FLUSHOT6",
-    "FLSHTMY2",
-    "IMFVPLAC",
-    "PNEUVAC3",
-    "HIVTST6",
-    "HIVTSTD3",
-    "WHRTST10",
-    "PDIABTST",
-    "PREDIAB1",
-    "INSULIN",
-    "BLDSUGAR",
-    "FEETCHK2",
-    "DOCTDIAB",
-    "CHKHEMO3",
-    "FEETCHK",
-    "EYEEXAM",
-    "DIABEYE",
-    "DIABEDU",
-    "CAREGIV1",
-    "CRGVREL1",
-    "CRGVLNG1",
-    "CRGVHRS1",
-    "CRGVPRB1",
-    "CRGVPERS",
-    "CRGVHOUS",
-    "CRGVMST2",
-    "CRGVEXPT",
-    "VIDFCLT2",
-    "VIREDIF3",
-    "VIPRFVS2",
-    "VINOCRE2",
-    "VIEYEXM2",
-    "VIINSUR2",
-    "VICTRCT4",
-    "VIGLUMA2",
-    "VIMACDG2",
-    "CIMEMLOS",
-    "CDHOUSE",
-    "CDASSIST",
-    "CDHELP",
-    "CDSOCIAL",
-    "CDDISCUS",
-    "WTCHSALT",
-    "LONGWTCH",
-    "DRADVISE",
-    "ASTHMAGE",
-    "ASATTACK",
-    "ASERVIST",
-    "ASDRVIST",
-    "ASRCHKUP",
-    "ASACTLIM",
-    "ASYMPTOM",
-    "ASNOSLEP",
-    "ASTHMED3",
-    "ASINHALR",
-    "HAREHAB1",
-    "STREHAB1",
-    "CVDASPRN",
-    "ASPUNSAF",
-    "RLIVPAIN",
-    "RDUCHART",
-    "RDUCSTRK",
-    "ARTTODAY",
-    "ARTHWGT",
-    "ARTHEXER",
-    "ARTHEDU",
-    "TETANUS",
-    "HPVADVC2",
-    "HPVADSHT",
-    "SHINGLE2",
-    "HADMAM",
-    "HOWLONG",
-    "HADPAP2",
-    "LASTPAP2",
-    "HPVTEST",
-    "HPLSTTST",
-    "HADHYST2",
-    "PROFEXAM",
-    "LENGEXAM",
-    "BLDSTOOL",
-    "LSTBLDS3",
-    "HADSIGM3",
-    "HADSGCO1",
-    "LASTSIG3",
-    "PCPSAAD2",
-    "PCPSADI1",
-    "PCPSARE1",
-    "PSATEST1",
-    "PSATIME",
-    "PCPSARS1",
-    "PCPSADE1",
-    "PCDMDECN",
-    "SCNTMNY1",
-    "SCNTMEL1",
-    "SCNTPAID",
-    "SCNTWRK1",
-    "SCNTLPAD",
-    "SCNTLWK1",
-    "SXORIENT",
-    "TRNSGNDR",
-    "RCSGENDR",
-    "RCSRLTN2",
-    "CASTHDX2",
-    "CASTHNO2",
-    "EMTSUPRT",
-    "LSATISFY",
-    "ADPLEASR",
-    "ADDOWN",
-    "ADSLEEP",
-    "ADENERGY",
-    "ADEAT1",
-    "ADFAIL",
-    "ADTHINK",
-    "ADMOVE",
-    "MISTMNT",
-    "ADANXEV",
-    "QSTVER",
-    "QSTLANG",
-    "MSCODE",
-    "_STSTR",
-    "_STRWT",
-    "_RAWRAKE",
-    "_WT2RAKE",
-    "_CHISPNC",
-    "_CRACE1",
-    "_CPRACE",
-    "_CLLCPWT",
-    "_DUALUSE",
-    "_DUALCOR",
-    "_LLCPWT",
-    "_RFHLTH",
-    "_HCVU651",
-    "_RFHYPE5",
-    "_CHOLCHK",
-    "_RFCHOL",
-    "_LTASTH1",
-    "_CASTHM1",
-    "_ASTHMS1",
-    "_DRDXAR1",
-    "_PRACE1",
-    "_MRACE1",
-    "_HISPANC",
-    "_RACE",
-    "_RACEG21",
-    "_RACEGR3",
-    "_RACE_G1",
-    "_AGEG5YR",
-    "_AGE65YR",
-    "_AGE80",
-    "_AGE_G",
-    "HTIN4",
-    "HTM4",
-    "WTKG3",
-    "_BMI5",
-    "_BMI5CAT",
-    "_RFBMI5",
-    "_CHLDCNT",
-    "_EDUCAG",
-    "_INCOMG",
-    "_SMOKER3",
-    "_RFSMOK3",
-    "DRNKANY5",
-    "DROCDY3_",
-    "_RFBING5",
-    "_DRNKWEK",
-    "_RFDRHV5",
-    "FTJUDA1_",
-    "FRUTDA1_",
-    "BEANDAY_",
-    "GRENDAY_",
-    "ORNGDAY_",
-    "VEGEDA1_",
-    "_MISFRTN",
-    "_MISVEGN",
-    "_FRTRESP",
-    "_VEGRESP",
-    "_FRUTSUM",
-    "_VEGESUM",
-    "_FRTLT1",
-    "_VEGLT1",
-    "_FRT16",
-    "_VEG23",
-    "_FRUITEX",
-    "_VEGETEX",
-    "_TOTINDA",
-    "METVL11_",
-    "METVL21_",
-    "MAXVO2_",
-    "FC60_",
-    "ACTIN11_",
-    "ACTIN21_",
-    "PADUR1_",
-    "PADUR2_",
-    "PAFREQ1_",
-    "PAFREQ2_",
-    "_MINAC11",
-    "_MINAC21",
-    "STRFREQ_",
-    "PAMISS1_",
-    "PAMIN11_",
-    "PAMIN21_",
-    "PA1MIN_",
-    "PAVIG11_",
-    "PAVIG21_",
-    "PA1VIGM_",
-    "_PACAT1",
-    "_PAINDX1",
-    "_PA150R2",
-    "_PA300R2",
-    "_PA30021",
-    "_PASTRNG",
-    "_PAREC1",
-    "_PASTAE1",
-    "_LMTACT1",
-    "_LMTWRK1",
-    "_LMTSCL1",
-    "_RFSEAT2",
-    "_RFSEAT3",
-    "_FLSHOT6",
-    "_PNEUMO2",
-    "_AIDTST3",
-]
 
 
-# check version number"""
+"""
+# check version number
 
 
-# Keep only the meaningful columns
+# Keep only the meaningful columns"""
 """x, x_test, y, _, test_ids = load_csv_data("dataset/")
 indexColumnsToKeep = []
 mapCols = dict()
@@ -405,7 +73,7 @@ x = x[indexLinesToKeep, :]
 y = y[indexLinesToKeep]
 x_test = x_test[:, indexColumnsToKeep]"""
 
-'''
+
 """
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
@@ -428,11 +96,17 @@ print(
 )
 
 
-over = SMOTE(sampling_strategy=0.2)
+over = SMOTE(sampling_strategy=0.1)
 under = RandomUnderSampler(sampling_strategy=0.5)
 steps = [("o", over), ("u", under)]
 pipeline = Pipeline(steps=steps)
 x, y = pipeline.fit_resample(x, y)
+
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+x = scaler.fit_transform(x)
+x_test = scaler.transform(x_test)
 
 """
 from imblearn.under_sampling import RandomUnderSampler
@@ -486,7 +160,7 @@ from sklearn.model_selection import RandomizedSearchCV
 
 best_gbc = tune_gradient_boosting_hyperparameters(x, y)"""
 
-gb_classifier = GradientBoostingClassifier(
+"""gb_classifier = GradientBoostingClassifier(
     n_estimators=100,
     subsample=0.1,
     random_state=42,
@@ -495,11 +169,52 @@ gb_classifier = GradientBoostingClassifier(
     max_features=None,
     max_depth=4,
     learning_rate=0.1,
+)"""
+
+from sklearn.metrics import (
+    f1_score,
+    accuracy_score,
+    roc_curve,
+    auc,
+    precision_recall_curve,
+    confusion_matrix,
 )
-gb_classifier.fit(x, y)
-prediction = gb_classifier.predict(x_test)
-print("pred -1: " + str(np.count_nonzero(prediction == -1)))
-create_csv_submission(test_ids, prediction, "y_predGBC.csv")  # F1:    | Acc:"""
+import matplotlib.pyplot as plt
+
+
+def evaluate(xtrain, ytrain, xtest, ytest):
+    f1_t = []
+    accuracy_t = []
+    for k in range(1, 300, 20):
+        selector = SelectKBest(score_func=f_classif, k=k)
+        x_train = selector.fit_transform(xtrain, ytrain)
+        x_test = selector.transform(xtest)
+        gb_classifier = LogisticRegression(max_iter=1000)
+        gb_classifier.fit(x_train, ytrain)
+        prediction = gb_classifier.predict(x_test)
+        f1 = f1_score(ytest, prediction)
+        accuracy = accuracy_score(ytest, prediction)
+        f1_t.append(f1)
+        accuracy_t.append(accuracy)
+        print("Actuellement entrain de calculer le k numero: " + str(k))
+    return f1_t, accuracy_t
+
+
+f1_t, accuracy_t = evaluate(x, y, x_test, y_test)
+save = [f1_t, accuracy_t]
+np.savetxt("results/LogReg.txt", save)
+print(save)
+import matplotlib.pyplot as plt
+
+plt.plot(range(1, 300, 20), f1_t)
+plt.plot(range(1, 300, 20), accuracy_t)
+# gb_classifier = GradientBoostingClassifier(n_estimators=100, learning_rate=0.5)
+# gb_classifier.fit(x, y)
+# evaluate_model(gb_classifier, x_test, y_test)
+
+# prediction = gb_classifier.predict(x_test)
+# print("pred -1: " + str(np.count_nonzero(prediction == -1)))
+# create_csv_submission(test_ids, prediction, "y_predGBC.csv")  # F1:    | Acc:"""
 
 
 """
@@ -518,8 +233,8 @@ print("pred -1: " + str(np.count_nonzero(prediction == -1)))
 create_csv_submission(
     test_ids, prediction, "y_predLOGREG.csv"
 )  # F1: 0.338    | Acc: 0.848
-"""
 
+"""
 """
 # Support Vector Machines
 from sklearn.svm import LinearSVC
