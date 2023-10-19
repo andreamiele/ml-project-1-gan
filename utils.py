@@ -41,3 +41,18 @@ def cross_validation(x, y , method, loss, k_fold, hyperparams):
   best_loss = loss_te[np.argmin(loss_te)]
 
   return best_hp, best_loss
+
+def knn(x_train, y_train, x_test, k):
+  y_test = np.ones(x_test.shape[0])
+  for i,x in enumerate(x_test):
+    distances = []
+    for j,x_t in enumerate(x_train):
+      distances.append((np.linalg.norm(x-x_t),j))
+    distances = sorted(distances)
+    count = 0
+    for nn in distances[:k]:
+      if y_train[nn[1]] == 1:
+        count += 1
+    if count < k/2:
+      y_test[i] = -1
+  return y_test
