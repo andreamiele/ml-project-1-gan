@@ -81,6 +81,26 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
         y, tx, initial_w, max_iters, gamma, logreg_grad, logreg_loss
     )
 
+def reg_logreg_grad(y, tx, w, lambda_):
+    grad = logreg_grad(y, tx, w)
+    return grad + lambda_ * w * 2
+
+def reg_logreg_loss(y, tx, w, lambda_):
+    loss = logreg_loss(y, tx, w)
+    return loss + lambda_ * np.linalg.norm(w)**2
+
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
+    for n_iter in range(max_iters):
+        g = reg_logreg_grad(y, tx, w, lambda_)
+
+        wold = w
+        w = w - gamma * g
+        if np.linalg.norm(w - wold) == 0:
+            break
+
+    return w, reg_logreg_loss(y, tx, w, lambda_)
+    
+
 """
 def logreg_loss(y, tx, w):
     yp = 1 / (1 + np.exp(np.dot(tx, w)))
@@ -89,7 +109,7 @@ def logreg_loss(y, tx, w):
 
 
 def logreg_grad(y, tx, w, batch_size):
-    """Méthode de Newton Raphson"""
+    #Méthode de Newton Raphson
     yp = 1 / (1 + np.exp(np.dot(tx, w)))
     g = -np.dot(
         np.dot(np.invert(np.dot(np.transpose(tx), np.dot(w, tx))), tx), (y - yp)
