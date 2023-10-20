@@ -1,4 +1,5 @@
 import numpy as np
+from implementations import *
 
 def build_k_indices(y, k_fold, seed):
   num_row = y.shape[0]
@@ -55,3 +56,16 @@ def knn(x_train, y_train, x_test, k):
     if count < k/2:
       y_test[i] = -1
   return y_test
+
+def calculate_hessian(y, tx, w):
+    pred = sigmoid(tx.dot(w))
+    pred = np.diag(pred.T[0])
+    r = np.multiply(pred, (1 - pred))
+    return tx.T.dot(r).dot(tx) * (1 / y.shape[0])
+
+def logreg_newton_gd(y, tx, w, max_iters, gamma):
+  for n_iters in range(max_iters):
+    grad = logreg_grad(y, tx, w)
+    hess = calculate_hessian(y, tx, w)
+    w = w - gamma * np.linalg.solve(hess, grad)
+  return w, logreg_loss(y, tx, w)
