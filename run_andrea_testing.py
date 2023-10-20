@@ -33,19 +33,20 @@ import matplotlib.pyplot as plt
 
 x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
 test_ids = test_ids.astype(dtype=int)
+
 X_train, Y_train, X_test = x_train, y_train, x_test
 
-"""
-
 # For splitting data:
+
 
 def create_train_test_split(X, y, test_size=0.25, random_state=42):
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state
     )
     return X_train, X_test, y_train, y_test
+
+
 X_train, X_test, Y_train, Y_test = create_train_test_split(x_train, y_train)
-"""
 
 
 imp = SimpleImputer(missing_values=np.nan, strategy="mean")
@@ -67,32 +68,56 @@ X_train = imputer.fit_transform(X_train)
 X_test = imputer.transform(X_test)
 print("Iterative Imputer done")
 """
+f1 = []
+acc = []
+for k in range(25, 300, 25):
+    print(str(k) + " is being started")
+    fs = SelectKBest(score_func=f_classif, k=k)
+    X_t = fs.fit_transform(X_train, Y_train)
+    f = fs.get_support(1)
+    X_t2 = X_test[:, f]
+    print("K Best done")
 
-fs = SelectKBest(score_func=f_classif, k=150)
-X_train = fs.fit_transform(X_train, Y_train)
-f = fs.get_support(1)
-X_test = X_test[:, f]
-print("K Best done")
+    over = SMOTE(sampling_strategy=0.15)
+    under = RandomUnderSampler(sampling_strategy=0.5)
+    steps = [("o", over), ("u", under)]
+    pipeline = Pipeline(steps=steps)
+    X_t, Y_t = pipeline.fit_resample(X_t, Y_train.ravel())
+    print("Smote done")
 
-over = SMOTE(sampling_strategy=0.15)
-under = RandomUnderSampler(sampling_strategy=0.5)
-steps = [("o", over), ("u", under)]
-pipeline = Pipeline(steps=steps)
-X_train, Y_train = pipeline.fit_resample(X_train, Y_train.ravel())
-print("Smote done")
+    gb_classifier = GradientBoostingClassifier(
+        n_estimators=400,
+        learning_rate=0.02,
+        min_samples_split=600,
+        max_depth=9,
+        random_state=10,
+        min_samples_leaf=30,
+        max_features=19,
+        subsample=0.85,
+    )
+    gb_classifier.fit(X_t, Y_t.ravel())
+    y_probabilities = gb_classifier.predict_proba(X_t2)[:, 1]
 
-gb_classifier = GradientBoostingClassifier(
-    n_estimators=400,
-    learning_rate=0.02,
-    min_samples_split=600,
-    max_depth=9,
-    random_state=10,
-    min_samples_leaf=30,
-    max_features=19,
-    subsample=0.85,
-)
-gb_classifier.fit(X_train, Y_train.ravel())
-y_probabilities = gb_classifier.predict_proba(X_test)[:, 1]
+    y_probabilities[y_probabilities >= 0.616177553416097] = 1
+    y_probabilities[y_probabilities < 0.616177553416097] = -1
+    prediction = y_probabilities
+    # create_csv_submission(test_ids, prediction, "bebou.csv")
+    # when splitting, calculating the score
+    accuracy = accuracy_score(Y_test, prediction)
+    precision = precision_score(Y_test, prediction)
+    recall = recall_score(Y_test, prediction)
+    f1score = f1_score(Y_test, prediction)
+    f1.append(f1score)
+    acc.append(accuracy)
+    print(str(k) + " is done")
+np.savetxt("results/f1.txt", f1)
+np.savetxt("results/acc.txt", acc)
+
+plt.plot(range(25, 300, 25), f1)
+plt.plot(range(25, 300, 25), acc)
+plt.show()
+
+
 """
 # Threshold tuning
 print(y_probabilities)
@@ -121,12 +146,12 @@ print(f"Optimal Accuracy: {accuracy_optimal:.3f}")
 
 # OPTIMAL : 0.616177553416097
 
-
+"""
 y_probabilities[y_probabilities >= 0.616177553416097] = 1
 y_probabilities[y_probabilities < 0.616177553416097] = -1
 prediction = y_probabilities
 create_csv_submission(test_ids, prediction, "bebou.csv")
-
+"""
 """
 #when splitting, calculating the score
 accuracy = accuracy_score(Y_test, prediction)
