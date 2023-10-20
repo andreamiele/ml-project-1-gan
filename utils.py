@@ -8,7 +8,7 @@ def build_k_indices(y, k_fold, seed):
   k_indices = [indices[k * interval : (k + 1) * interval] for k in range(k_fold)]
   return np.array(k_indices)
   
-def cross_validation_one(y, x, initial_w, k_indices, k, hp, max_iters, method, loss):
+def cross_validation_one(y, x, initial_w, k_indices, k, hp, method, loss):
   x_test = x[k_indices[k],:]
   y_test = y[k_indices[k]]
   train_indices = np.array([])
@@ -20,11 +20,11 @@ def cross_validation_one(y, x, initial_w, k_indices, k, hp, max_iters, method, l
   x_train = x[train_indices.astype(int)]
   y_train = y[train_indices.astype(int)]
   
-  w = method(x_train, y_train, initial_w, max_iters, hp)
+  w = method(x_train, y_train, initial_w, hp)
   loss_te = loss(y_test, x_test, w)
   return loss_te
 
-def cross_validation(x, y, initial_w, method, loss, k_fold, max_iters, hyperparams):
+def cross_validation(x, y, initial_w, method, loss, k_fold, hyperparams):
   seed = 12
   k_fold = k_fold
   k_indices = build_k_indices(y, k_fold, seed)
@@ -33,7 +33,7 @@ def cross_validation(x, y, initial_w, method, loss, k_fold, max_iters, hyperpara
   for hp in hyperparams:
     loss_te_temp = []
     for k in range(k_fold):
-      loss_te = cross_validation_one(y, x, initial_w, k_indices, k, hp, max_iters, method, loss)
+      loss_te = cross_validation_one(y, x, initial_w, k_indices, k, hp, method, loss)
       loss_te_temp.append(loss_te)
     losses_te.append(np.mean(loss_te_temp))
   best_hp = hyperparams[np.argmin(losses_te)]

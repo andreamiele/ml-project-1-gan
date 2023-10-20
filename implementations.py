@@ -89,7 +89,7 @@ def reg_logreg_loss(y, tx, w, lambda_):
     loss = logreg_loss(y, tx, w)
     return loss + lambda_ * np.linalg.norm(w)**2
 
-def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
+def reg_logistic_regression(y, tx, lambda_, w, max_iters, gamma):
     for n_iter in range(max_iters):
         g = reg_logreg_grad(y, tx, w, lambda_)
 

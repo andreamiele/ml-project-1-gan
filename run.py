@@ -15,7 +15,9 @@ def logreg_grad_sgd(y, tx, w):
     pred = sigmoid(tx[index].dot(w))
     return tx[index]*(pred - y[index])
 
-def logistic_regression_sgd(tx, y, initial_w, max_iters, gamma):
+def logistic_regression_sgd(tx, y, initial_w, hyperparameters):
+    max_iters = hyperparameters[0]
+    gamma = hyperparameters[1]
     w = initial_w
     for n_iter in range(max_iters):
         g = logreg_grad_sgd(y, tx, w)
@@ -25,6 +27,9 @@ def logistic_regression_sgd(tx, y, initial_w, max_iters, gamma):
         if np.linalg.norm(w - wold) == 0:
             break
     return w
+
+def reg_logistic_regression_CV_friendly(y, tx, w, hyperparameters):
+    return reg_logistic_regression(y, tx, hyperparameters[0], w, hyperparameters[1], hyperparameters[2])
 
 x_test = x_test.T
 for col in x_test:
@@ -49,10 +54,22 @@ x_test = tmp
 w = np.zeros(x_test.shape[1])
 
 gammas = np.arange(200)*0.005
+max_iters = np.arange(1000)*100
+hyperparameters = []
+for mi in max_iters:
+    for g in gammas:
+        hyperparameters.append([mi,g])
+x_train = x_train.astype(np.float128)
+y_train = y_train.astype(np.float128)
+x_test = x_test.astype(np.float128)
+w = w.astype(np.float128)
 
-gamma, _ = cross_validation(x_train, y_train, w, logistic_regression_sgd, logreg_loss, 4, 10000, gammas)
+best_hyperparameters, _ = cross_validation(x_train, y_train, w, logistic_regression_sgd, logreg_loss, 4, hyperparameters)
 
-w = logistic_regression_sgd(x_train, y_train, w, 10000, gamma)
+gamma = best_hyperparameters[1]
+max_iters = best_hyperparameters[0]
+
+w = logistic_regression_sgd(x_train, y_train, w, max_iters, gamma)
 print(gamma)
 
 pred = sigmoid(x_test.dot(w))
