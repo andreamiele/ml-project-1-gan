@@ -1,15 +1,11 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import datetime
 from helpers import *
-from plots import gradient_descent_visualization
-from ipywidgets import IntSlider, interact
 
 
-def generic_regression(y, tx, initial_w, max_iters, gamma, batch_size, grad, loss):
+def generic_regression(y, tx, initial_w, max_iters, gamma, grad, loss):
     w = initial_w
     for n_iter in range(max_iters):
-        g = grad(y, tx, w, batch_size)
+        g = grad(y, tx, w)
 
         wold = w
         w = w - gamma * g
@@ -27,27 +23,25 @@ def mae_loss(y, tx, w):
     return np.linalg.norm(y - np.dot(tx, w), ord=1) / y.shape[0]
 
 
-def mse_gradient(y, tx, w, batch_size):
+def mse_gradient(y, tx, w):
     return -np.dot(np.transpose(tx), y - np.dot(tx, w)) / y.shape[0]
 
 
 def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
     return generic_regression(
-        y, tx, initial_w, max_iters, gamma, -1, mse_gradient, mse_loss
+        y, tx, initial_w, max_iters, gamma, mse_gradient, mse_loss
     )
 
 
-def mse_stoch_gradient(y, tx, w, batch_size):
-    stochastic_grad = np.zeros((2,))
-    for mini_batch_y, mini_batch_x in batch_iter(y, tx, batch_size):
-        tmp = mini_batch_y - np.dot(mini_batch_x, w)
-        stochastic_grad += np.array([tmp[0], tmp[0] * mini_batch_x[0][1]])
-    return -stochastic_grad / batch_size
+def mse_stoch_gradient(y, tx, w):
+    index = np.random.randint(0,y.shape[0]-1)
+    tmp = y[index] - tx[index].dot(w)
+    return - tmp**2 / 2
 
 
 def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
     return generic_regression(
-        y, tx, initial_w, max_iters, gamma, 1, mse_stoch_gradient, mse_loss
+        y, tx, initial_w, max_iters, gamma, mse_stoch_gradient, mse_loss
     )
 
 
@@ -68,6 +62,46 @@ def ridge_regression(y, tx, lambda_):
     return w, loss
 
 
+def sigmoid(t):
+    tmp = np.exp(t)
+    return tmp/(1 + tmp)
+
+def logreg_loss(y, tx, w):
+    pred = sigmoid(tx.dot(w))
+    loss = y.T.dot(np.log(pred)) + (1 - y).T.dot(np.log(1 - pred))
+    return np.squeeze(-loss).item() * (1 / y.shape[0])
+
+def logreg_grad(y, tx, w):
+    pred = sigmoid(tx.dot(w))
+    return tx.T.dot(pred - y) * (1 / y.shape[0])
+
+
+def logistic_regression(y, tx, initial_w, max_iters, gamma):
+    return generic_regression(
+        y, tx, initial_w, max_iters, gamma, logreg_grad, logreg_loss
+    )
+
+def reg_logreg_grad(y, tx, w, lambda_):
+    grad = logreg_grad(y, tx, w)
+    return grad + lambda_ * w * 2
+
+def reg_logreg_loss(y, tx, w, lambda_):
+    loss = logreg_loss(y, tx, w)
+    return loss + lambda_ * np.linalg.norm(w)**2
+
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
+    for n_iter in range(max_iters):
+        g = reg_logreg_grad(y, tx, w, lambda_)
+
+        wold = w
+        w = w - gamma * g
+        if np.linalg.norm(w - wold) == 0:
+            break
+
+    return w, reg_logreg_loss(y, tx, w, lambda_)
+    
+
+"""
 def logreg_loss(y, tx, w):
     yp = 1 / (1 + np.exp(np.dot(tx, w)))
     loss = -np.mean(y * (np.log(yp)) - (1 - y) * np.log(1 - yp))
@@ -75,7 +109,7 @@ def logreg_loss(y, tx, w):
 
 
 def logreg_grad(y, tx, w, batch_size):
-    """Méthode de Newton Raphson"""
+    #Méthode de Newton Raphson
     yp = 1 / (1 + np.exp(np.dot(tx, w)))
     g = -np.dot(
         np.dot(np.invert(np.dot(np.transpose(tx), np.dot(w, tx))), tx), (y - yp)
@@ -87,3 +121,4 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     return generic_regression(
         y, tx, initial_w, max_iters, gamma, -1, logreg_grad, logreg_loss
     )
+"""
