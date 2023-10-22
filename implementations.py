@@ -1,7 +1,7 @@
 import numpy as np
 from helpers import *
 
-
+#Function taking a gradient and a loss functions as argument and implementing a generic regression
 def generic_regression(y, tx, initial_w, max_iters, gamma, grad, loss):
     w = initial_w
     for n_iter in range(max_iters):
