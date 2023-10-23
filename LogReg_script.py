@@ -85,8 +85,8 @@ class LogisticRegression:
 
     def compute_loss(self, y_true, y_pred):
         # binary cross entropy
-        y_zero_loss = y_true * np.log(y_pred + 1e-9)
-        y_one_loss = (1 - y_true) * np.log(1 - y_pred + 1e-9)
+        y_zero_loss = y_true.dot(np.log(y_pred + 1e-9))
+        y_one_loss = (1 - y_true).dot(np.log(1 - y_pred + 1e-9))
         return -np.mean(y_zero_loss + y_one_loss)
 
     def compute_gradients(self, x, y_true, y_pred):
