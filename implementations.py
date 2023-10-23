@@ -64,40 +64,31 @@ def ridge_regression(y, tx, lambda_):
     return w, loss
 
 
-def _positive_sigmoid(x):
+def positive_sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 
-def _negative_sigmoid(x):
-    # Cache exp so you won't have to calculate it twice
-    exp = np.exp(x)
-    return exp / (exp + 1)
+def negative_sigmoid(x):
+    tmp = np.exp(x)
+    return tmp / (1 + tmp)
 
 
 def sigmoid(x):
     positive = x >= 0
-    # Boolean array inversion is faster than another comparison
     negative = ~positive
-
-    # empty contains junk hence will be faster to allocate
-    # Zeros has to zero-out the array after allocation, no need for that
-    # See comment to the answer when it comes to dtype
-    result = np.empty_like(x, dtype=float)
-    result[positive] = _positive_sigmoid(x[positive])
-    result[negative] = _negative_sigmoid(x[negative])
-
-    return result
+    res = np.empty_like(x, dtype=np.float64)
+    res[positive] = positive_sigmoid(x[positive])
+    res[negative] = negative_sigmoid(x[negative])
+    return res
 
 
 def logreg_loss(y, tx, w):
-    pred = sigmoid(tx.dot(w))
-    loss = y.T.dot(np.log(pred + 1e-5)) + (1 - y).T.dot(np.log(1 - pred + 1e-5))
-    return np.float64(np.squeeze(-loss).item() * (1 / y.shape[0]))
+    return np.sum(np.sum(np.logaddexp(0, tx.dot(w)) - y * (tx.dot(w)))) / y.shape[0]
 
 
 def logreg_grad(y, tx, w):
     pred = sigmoid(tx.dot(w))
-    return tx.T.dot(pred - y) * (1 / y.shape[0])
+    return tx.T.dot(pred - y) / y.shape[0]
 
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
@@ -108,12 +99,12 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
 def reg_logreg_grad(y, tx, w, lambda_):
     grad = logreg_grad(y, tx, w)
-    return grad + lambda_ * w
+    return grad + lambda_ * w * 2
 
 
 def reg_logreg_loss(y, tx, w, lambda_):
     loss = logreg_loss(y, tx, w)
-    return np.float64(loss + (lambda_ * np.linalg.norm(w) ** 2) / 2)
+    return np.float64(loss + lambda_ * np.linalg.norm(w) ** 2)
 
 
 def reg_logistic_regression(y, tx, lambda_, w, max_iters, gamma):
