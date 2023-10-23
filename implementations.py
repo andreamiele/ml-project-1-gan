@@ -80,7 +80,7 @@ def sigmoid(x):
 
 def logreg_loss(y, tx, w):
     pred = sigmoid(tx.dot(w))
-    loss = y.T.dot(np.log(pred + 1e-5)) + (1 - y).T.dot(np.log(1 - pred + 1e-5))
+    loss = y.T.dot(np.log(pred + 1e-10)) + (1 - y).T.dot(np.log(1 - pred + 1e-10))
     return np.float64(np.squeeze(-loss).item() * (1 / y.shape[0]))
 
 
