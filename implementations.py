@@ -34,7 +34,7 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
 
 
 def mse_stoch_gradient(y, tx, w):
-    index = np.random.randint(0,y.shape[0]-1)
+    index = np.random.randint(0,y.shape[0])
     tmp = y[index] - tx[index].dot(w)
     return - tmp**2 / 2
 
@@ -58,17 +58,27 @@ def ridge_regression(y, tx, lambda_):
     a = tx.T.dot(tx) + lambda_p * np.identity(np.shape(tx)[1])
     b = tx.T.dot(y)
     w = np.linalg.solve(a, b)
-    loss = mae_loss(y, tx, w)
+    loss = mse_loss(y, tx, w)
     return w, loss
 
+def positive_sigmoid(x):
+    return 1/(1+np.exp(-x))
 
-def sigmoid(t):
-    tmp = np.exp(t)
-    return tmp/(1 + tmp)
+def negative_sigmoid(x):
+    tmp = np.exp(x)
+    return tmp/(1+tmp)
 
+def sigmoid(x):
+    positive = x >= 0
+    negative = ~positive
+    res = np.empty_like(x, dtype=np.float64)
+    res[positive] = positive_sigmoid(x[positive])
+    res[negative] = negative_sigmoid(x[negative])
+    return res
+    
 def logreg_loss(y, tx, w):
     pred = sigmoid(tx.dot(w))
-    loss = y.T.dot(np.log(pred)) + (1 - y).T.dot(np.log(1 - pred))
+    loss = y.T.dot(np.log(pred + 1e-5)) + (1 - y).T.dot(np.log(1 - pred + 1e-5))
     return np.squeeze(-loss).item() * (1 / y.shape[0])
 
 def logreg_grad(y, tx, w):
@@ -83,11 +93,11 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
 def reg_logreg_grad(y, tx, w, lambda_):
     grad = logreg_grad(y, tx, w)
-    return grad + lambda_ * w * 2
+    return grad + lambda_ * w
 
 def reg_logreg_loss(y, tx, w, lambda_):
     loss = logreg_loss(y, tx, w)
-    return loss + lambda_ * np.linalg.norm(w)**2
+    return loss + (lambda_ * np.linalg.norm(w)**2) / 2
 
 def reg_logistic_regression(y, tx, lambda_, w, max_iters, gamma):
     for n_iter in range(max_iters):
@@ -98,7 +108,7 @@ def reg_logistic_regression(y, tx, lambda_, w, max_iters, gamma):
         if np.linalg.norm(w - wold) == 0:
             break
 
-    return w, reg_logreg_loss(y, tx, w, lambda_)
+    return w, logreg_loss(y, tx, w)
     
 
 """
