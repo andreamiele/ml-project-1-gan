@@ -75,7 +75,12 @@ def negative_sigmoid(x):
 
 
 def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
+    positive = x >= 0
+    negative = ~positive
+    res = np.empty_like(x, dtype=np.float64)
+    res[positive] = positive_sigmoid(x[positive])
+    res[negative] = negative_sigmoid(x[negative])
+    return res
 
 
 def logreg_loss(y, tx, w):
@@ -84,7 +89,7 @@ def logreg_loss(y, tx, w):
 
 def logreg_grad(y, tx, w):
     pred = sigmoid(tx.dot(w))
-    return tx.T.dot(pred - y)
+    return tx.T.dot(pred - y) / y.shape[0]
 
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
