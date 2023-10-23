@@ -1,7 +1,7 @@
 import numpy as np
 from helpers import *
 
-#Function taking a gradient and a loss functions as argument and implementing a generic regression
+# Function taking a gradient and a loss functions as argument and implementing a generic regression
 def generic_regression(y, tx, initial_w, max_iters, gamma, grad, loss):
     w = initial_w
     for n_iter in range(max_iters):
@@ -34,9 +34,9 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
 
 
 def mse_stoch_gradient(y, tx, w):
-    index = np.random.randint(0,y.shape[0])
+    index = np.random.randint(0, y.shape[0])
     tmp = y[index] - tx[index].dot(w)
-    return - tmp**2 / 2
+    return -(tmp**2) / 2
 
 
 def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
@@ -61,12 +61,15 @@ def ridge_regression(y, tx, lambda_):
     loss = mse_loss(y, tx, w)
     return w, loss
 
+
 def positive_sigmoid(x):
-    return 1/(1+np.exp(-x))
+    return 1 / (1 + np.exp(-x))
+
 
 def negative_sigmoid(x):
     tmp = np.exp(x)
-    return tmp/(1+tmp)
+    return tmp / (1 + tmp)
+
 
 def sigmoid(x):
     positive = x >= 0
@@ -75,11 +78,13 @@ def sigmoid(x):
     res[positive] = positive_sigmoid(x[positive])
     res[negative] = negative_sigmoid(x[negative])
     return res
-    
+
+
 def logreg_loss(y, tx, w):
     pred = sigmoid(tx.dot(w))
     loss = y.T.dot(np.log(pred + 1e-5)) + (1 - y).T.dot(np.log(1 - pred + 1e-5))
     return np.squeeze(-loss).item() * (1 / y.shape[0])
+
 
 def logreg_grad(y, tx, w):
     pred = sigmoid(tx.dot(w))
@@ -91,13 +96,16 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
         y, tx, initial_w, max_iters, gamma, logreg_grad, logreg_loss
     )
 
+
 def reg_logreg_grad(y, tx, w, lambda_):
     grad = logreg_grad(y, tx, w)
     return grad + lambda_ * w
 
+
 def reg_logreg_loss(y, tx, w, lambda_):
     loss = logreg_loss(y, tx, w)
-    return loss + (lambda_ * np.linalg.norm(w)**2) / 2
+    return loss + (lambda_ * np.linalg.norm(w) ** 2) / 2
+
 
 def reg_logistic_regression(y, tx, lambda_, w, max_iters, gamma):
     for n_iter in range(max_iters):
@@ -109,7 +117,7 @@ def reg_logistic_regression(y, tx, lambda_, w, max_iters, gamma):
             break
 
     return w, logreg_loss(y, tx, w)
-    
+
 
 """
 def logreg_loss(y, tx, w):
