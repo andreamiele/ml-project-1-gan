@@ -1,6 +1,10 @@
 import numpy as np
 from helpers import *
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 865b7da5cec3d63df9e18d00dbe13381f7221902
 # Function taking a gradient and a loss functions as argument and implementing a generic regression
 def generic_regression(y, tx, initial_w, max_iters, gamma, grad, loss):
     w = initial_w
@@ -16,11 +20,11 @@ def generic_regression(y, tx, initial_w, max_iters, gamma, grad, loss):
 
 
 def mse_loss(y, tx, w):
-    return (np.linalg.norm(y - np.dot(tx, w), ord=2) ** 2) / (2 * y.shape[0])
+    return np.float64((np.linalg.norm(y - np.dot(tx, w), ord=2) ** 2) / (2 * y.shape[0]))
 
 
 def mae_loss(y, tx, w):
-    return np.linalg.norm(y - np.dot(tx, w), ord=1) / y.shape[0]
+    return np.float64(np.linalg.norm(y - np.dot(tx, w), ord=1) / y.shape[0])
 
 
 def mse_gradient(y, tx, w):
@@ -34,9 +38,15 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
 
 
 def mse_stoch_gradient(y, tx, w):
+<<<<<<< HEAD
     index = np.random.randint(0, y.shape[0] - 1)
     tmp = y[index] - tx[index].dot(w)
     return -(tmp**2) / 2
+=======
+    index = np.random.randint(0, y.shape[0])
+    tmp = y[index] - tx[index].dot(w)
+    return -tmp * tx[index].T
+>>>>>>> 865b7da5cec3d63df9e18d00dbe13381f7221902
 
 
 def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
@@ -58,10 +68,11 @@ def ridge_regression(y, tx, lambda_):
     a = tx.T.dot(tx) + lambda_p * np.identity(np.shape(tx)[1])
     b = tx.T.dot(y)
     w = np.linalg.solve(a, b)
-    loss = mae_loss(y, tx, w)
+    loss = mse_loss(y, tx, w)
     return w, loss
 
 
+<<<<<<< HEAD
 def _positive_sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
@@ -70,10 +81,20 @@ def _negative_sigmoid(x):
     # Cache exp so you won't have to calculate it twice
     exp = np.exp(x)
     return exp / (exp + 1)
+=======
+def positive_sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+
+def negative_sigmoid(x):
+    tmp = np.exp(x)
+    return tmp / (1 + tmp)
+>>>>>>> 865b7da5cec3d63df9e18d00dbe13381f7221902
 
 
 def sigmoid(x):
     positive = x >= 0
+<<<<<<< HEAD
     # Boolean array inversion is faster than another comparison
     negative = ~positive
 
@@ -85,12 +106,20 @@ def sigmoid(x):
     result[negative] = _negative_sigmoid(x[negative])
 
     return result
+=======
+    negative = ~positive
+    res = np.empty_like(x, dtype=np.float64)
+    res[positive] = positive_sigmoid(x[positive])
+    res[negative] = negative_sigmoid(x[negative])
+    return res
+>>>>>>> 865b7da5cec3d63df9e18d00dbe13381f7221902
 
 
 def logreg_loss(y, tx, w):
     pred = sigmoid(tx.dot(w))
-    loss = y.T.dot(np.log(pred)) + (1 - y).T.dot(np.log(1 - pred))
-    return np.squeeze(-loss).item() * (1 / y.shape[0])
+    loss = y.T.dot(np.log(pred + 1e-5)) + (1 - y).T.dot(np.log(1 - pred + 1e-5))
+    return np.float64(np.squeeze(-loss).item() * (1 / y.shape[0]))
+
 
 
 def logreg_grad(y, tx, w):
@@ -106,12 +135,17 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
 def reg_logreg_grad(y, tx, w, lambda_):
     grad = logreg_grad(y, tx, w)
-    return grad + lambda_ * w * 2
+    return grad + lambda_ * w
+
 
 
 def reg_logreg_loss(y, tx, w, lambda_):
     loss = logreg_loss(y, tx, w)
+<<<<<<< HEAD
     return loss + lambda_ * np.linalg.norm(w) ** 2
+=======
+    return np.float64(loss + (lambda_ * np.linalg.norm(w) ** 2) / 2)
+>>>>>>> 865b7da5cec3d63df9e18d00dbe13381f7221902
 
 
 def reg_logistic_regression(y, tx, lambda_, w, max_iters, gamma):
@@ -123,7 +157,11 @@ def reg_logistic_regression(y, tx, lambda_, w, max_iters, gamma):
         if np.linalg.norm(w - wold) == 0:
             break
 
+<<<<<<< HEAD
     return w, reg_logreg_loss(y, tx, w, lambda_)
+=======
+    return w, logreg_loss(y, tx, w)
+>>>>>>> 865b7da5cec3d63df9e18d00dbe13381f7221902
 
 
 """
