@@ -1,6 +1,7 @@
 import numpy as np
 from helpers import *
 
+
 # Function taking a gradient and a loss functions as argument and implementing a generic regression
 def generic_regression(y, tx, initial_w, max_iters, gamma, grad, loss):
     w = initial_w
@@ -16,11 +17,11 @@ def generic_regression(y, tx, initial_w, max_iters, gamma, grad, loss):
 
 
 def mse_loss(y, tx, w):
-    return (np.linalg.norm(y - np.dot(tx, w), ord=2) ** 2) / (2 * y.shape[0])
+    return np.float64((np.linalg.norm(y - np.dot(tx, w), ord=2) ** 2) / (2 * y.shape[0]))
 
 
 def mae_loss(y, tx, w):
-    return np.linalg.norm(y - np.dot(tx, w), ord=1) / y.shape[0]
+    return np.float64(np.linalg.norm(y - np.dot(tx, w), ord=1) / y.shape[0])
 
 
 def mse_gradient(y, tx, w):
@@ -36,7 +37,7 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
 def mse_stoch_gradient(y, tx, w):
     index = np.random.randint(0, y.shape[0])
     tmp = y[index] - tx[index].dot(w)
-    return -(tmp**2) / 2
+    return -tmp * tx[index].T
 
 
 def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
@@ -83,7 +84,7 @@ def sigmoid(x):
 def logreg_loss(y, tx, w):
     pred = sigmoid(tx.dot(w))
     loss = y.T.dot(np.log(pred + 1e-5)) + (1 - y).T.dot(np.log(1 - pred + 1e-5))
-    return np.squeeze(-loss).item() * (1 / y.shape[0])
+    return np.float64(np.squeeze(-loss).item() * (1 / y.shape[0]))
 
 
 def logreg_grad(y, tx, w):
@@ -104,7 +105,7 @@ def reg_logreg_grad(y, tx, w, lambda_):
 
 def reg_logreg_loss(y, tx, w, lambda_):
     loss = logreg_loss(y, tx, w)
-    return loss + (lambda_ * np.linalg.norm(w) ** 2) / 2
+    return np.float64(loss + (lambda_ * np.linalg.norm(w) ** 2) / 2)
 
 
 def reg_logistic_regression(y, tx, lambda_, w, max_iters, gamma):
