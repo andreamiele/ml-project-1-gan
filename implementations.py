@@ -264,6 +264,7 @@ def reg_logreg_grad(y, tx, w, lambda_):
     grad = logreg_grad(y, tx, w)
     return grad + lambda_ * w * 2
 
+
 def reg_logistic_regression(y, tx, lambda_, w, max_iters, gamma):
     """Regularised logistic regression
 
