@@ -75,12 +75,7 @@ def negative_sigmoid(x):
 
 
 def sigmoid(x):
-    positive = x >= 0
-    negative = ~positive
-    res = np.empty_like(x, dtype=np.float64)
-    res[positive] = positive_sigmoid(x[positive])
-    res[negative] = negative_sigmoid(x[negative])
-    return res
+    return 1 / (1 + np.exp(-x))
 
 
 def logreg_loss(y, tx, w):
