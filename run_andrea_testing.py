@@ -1,6 +1,6 @@
 ### >>> IMPORT
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegressionCV
+from sklearn.model_selection import train_test_split, cross_validate, KFold
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import RandomizedSearchCV
@@ -70,7 +70,7 @@ print("Iterative Imputer done")
 """
 f1 = []
 acc = []
-for k in range(25, 300, 25):
+for k in range(15, 75, 5):
     print(str(k) + " is being started")
     fs = SelectKBest(score_func=f_classif, k=k)
     X_t = fs.fit_transform(X_train, Y_train)
@@ -84,7 +84,7 @@ for k in range(25, 300, 25):
     pipeline = Pipeline(steps=steps)
     X_t, Y_t = pipeline.fit_resample(X_t, Y_train.ravel())
     print("Smote done")
-
+    """
     gb_classifier = GradientBoostingClassifier(
         n_estimators=400,
         learning_rate=0.02,
@@ -100,6 +100,27 @@ for k in range(25, 300, 25):
 
     y_probabilities[y_probabilities >= 0.616177553416097] = 1
     y_probabilities[y_probabilities < 0.616177553416097] = -1
+    """
+    kf = KFold()
+    logreg = LogisticRegressionCV(penalty="l2", max_iter=1000, cv=kf)
+
+    logreg.fit(X_t, Y_t.ravel())
+    y_probabilities = logreg.predict_proba(X_t2)[:, 1]
+    thresholds = np.arange(100) * 0.01
+    maximizer = -1
+    maxf1 = -1
+    print(thresholds)
+    for threshold in thresholds:
+        tmp = y_probabilities.copy()
+        tmp[tmp >= threshold] = 1
+        tmp[tmp < threshold] = -1
+        f1score = f1_score(Y_test, tmp)
+        if maxf1 == -1 or f1score > maxf1:
+            maxf1 = f1score
+            maximizer = threshold
+    print(">>>>>>>>>>>>>> Thresholds: ", maximizer, "<<<<<<<<<<<<<<<<<<")
+    y_probabilities[y_probabilities >= maximizer] = 1
+    y_probabilities[y_probabilities < maximizer] = -1
     prediction = y_probabilities
     # create_csv_submission(test_ids, prediction, "bebou.csv")
     # when splitting, calculating the score
@@ -113,8 +134,8 @@ for k in range(25, 300, 25):
 np.savetxt("results/f1.txt", f1)
 np.savetxt("results/acc.txt", acc)
 
-plt.plot(range(25, 300, 25), f1)
-plt.plot(range(25, 300, 25), acc)
+plt.plot(range(15, 75, 5), f1)
+plt.plot(range(15, 75, 5), acc)
 plt.show()
 
 
