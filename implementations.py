@@ -79,7 +79,7 @@ def sigmoid(x):
 
 
 def logreg_loss(y, tx, w):
-    return np.sum(np.sum(np.logaddexp(0, tx.dot(w)) - y*(tx.dot(w))))
+    return np.sum(np.sum(np.logaddexp(0, tx.dot(w)) - y*(tx.dot(w)))) / y.shape[0]
 
 
 def logreg_grad(y, tx, w):
