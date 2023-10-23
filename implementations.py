@@ -17,7 +17,9 @@ def generic_regression(y, tx, initial_w, max_iters, gamma, grad, loss):
 
 
 def mse_loss(y, tx, w):
-    return np.float64((np.linalg.norm(y - np.dot(tx, w), ord=2) ** 2) / (2 * y.shape[0]))
+    return np.float64(
+        (np.linalg.norm(y - np.dot(tx, w), ord=2) ** 2) / (2 * y.shape[0])
+    )
 
 
 def mae_loss(y, tx, w):
@@ -89,7 +91,7 @@ def logreg_loss(y, tx, w):
 
 def logreg_grad(y, tx, w):
     pred = sigmoid(tx.dot(w))
-    return tx.T.dot(pred - y) * (1 / y.shape[0])
+    return tx.T.dot(pred - y)
 
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
