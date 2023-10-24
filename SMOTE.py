@@ -140,3 +140,73 @@ class RandomUnderSampler:
         y_resampled = y[combined_indices]
 
         return X_resampled, y_resampled
+
+
+import numpy as np
+
+
+class RandomOverSampler:
+    def __init__(self, sampling_strategy=1.0, random_state=None):
+        """
+        Initialize the RandomOverSampler.
+
+        Parameters:
+        sampling_strategy : float, optional (default=1.0)
+            The desired ratio of the number of samples in the minority class over
+            the number of samples in the majority class after oversampling. For
+            example, if you want a 1:2 ratio, set sampling_strategy=0.5.
+
+        random_state : int or None, optional (default=None)
+            Seed for random number generation to ensure reproducibility.
+        """
+        self.sampling_strategy = sampling_strategy
+        self.random_state = random_state
+
+    def fit_generate(self, X, y):
+        """
+        Random oversample the minority class in the dataset to achieve a specific
+        sampling strategy (ratio).
+
+        Parameters:
+        X : numpy array or array-like
+            Feature matrix of shape (n_samples, n_features).
+
+        y : numpy array or array-like
+            Target labels of shape (n_samples,).
+
+        Returns:
+        X_resampled : numpy array
+            Oversampled feature matrix.
+
+        y_resampled : numpy array
+            Oversampled target labels.
+        """
+        # Check if sampling_strategy is a float between 0 and 1
+        if not (0 < self.sampling_strategy <= 1.0):
+            raise ValueError("sampling_strategy must be a float between 0 and 1.")
+
+        # Identify minority and majority classes
+        unique_classes, class_counts = np.unique(y, return_counts=True)
+        minority_class = unique_classes[np.argmin(class_counts)]
+        majority_class = unique_classes[np.argmax(class_counts)]
+
+        # Determine the number of samples needed to achieve the desired ratio
+        majority_samples = class_counts[unique_classes == majority_class][0]
+        minority_samples = class_counts[unique_classes == minority_class][0]
+        target_minority_samples = int(majority_samples * self.sampling_strategy)
+
+        # Randomly oversample the minority class
+        random_state = np.random.default_rng(seed=self.random_state)
+        minority_indices = np.where(y == minority_class)[0]
+        oversampled_indices = random_state.choice(
+            minority_indices, size=target_minority_samples, replace=True
+        )
+
+        X_minority = X[oversampled_indices]
+        y_minority = y[oversampled_indices]
+
+        # Combine oversampled minority class with majority class
+        X_resampled = np.vstack((X, X_minority))
+        y_resampled = np.hstack((y, y_minority))
+
+        return X_resampled, y_resampled

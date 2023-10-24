@@ -7,9 +7,12 @@ from validation import *
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.impute import SimpleImputer
 
-from imblearn.over_sampling import SMOTE
-from imblearn.under_sampling import RandomUnderSampler
-from imblearn.pipeline import Pipeline
+from SMOTE import *
+
+
+# from imblearn.over_sampling import SMOTE
+# from imblearn.under_sampling import RandomUnderSampler
+# from imblearn.pipeline import Pipeline
 
 
 def preprocessing(X_train, X_test, Y_train, sampling_strat, Kselected):
@@ -18,17 +21,32 @@ def preprocessing(X_train, X_test, Y_train, sampling_strat, Kselected):
     X_train = imp.transform(X_train)
     imp = imp.fit(X_test)
     X_test = imp.transform(X_test)
-    from imblearn.over_sampling import BorderlineSMOTE
 
     X_t = np.delete(X_train, [9, 11, 12, 18, 19, 22], 1)
     X_t2 = np.delete(X_test, [9, 11, 12, 18, 19, 22], 1)
 
-    over = BorderlineSMOTE(sampling_strategy=sampling_strat)
-    under = RandomUnderSampler(sampling_strategy=0.5)
-    steps = [("o", over), ("u", under)]
-    pipeline = Pipeline(steps=steps)
-    X_t, Y_t = pipeline.fit_resample(X_t, Y_train.ravel())
-    print("Smote done")
+    print(">>> Before resample: \n --------------------------------------")
+    print(
+        "ytrain -1: "
+        + str(np.count_nonzero(Y_train == -1))
+        + "   |  ytrain 1: "
+        + str(np.count_nonzero(Y_train == 1))
+        + "\n-------------------------------------\n"
+    )
+    ros = RandomOverSampler(sampling_strategy=0.15)
+    X_balanced, Y_balanced = ros.fit_generate(X_t, Y_train)
+    rus = RandomUnderSampler(sampling_strategy=0.8)
+    X_t, Y_t = rus.fit_resample(X_balanced, Y_balanced)
+
+    print(">>> Before resample: \n --------------------------------------")
+    print(
+        "ytrain -1: "
+        + str(np.count_nonzero(Y_t == -1))
+        + "   |  ytrain 1: "
+        + str(np.count_nonzero(Y_t == 1))
+        + "\n-------------------------------------\n"
+    )
+    print("Over/Under sampling done")
 
     fs = SelectKBest(score_func=f_classif, k=Kselected)
     X_t = fs.fit_transform(X_t, Y_t)
