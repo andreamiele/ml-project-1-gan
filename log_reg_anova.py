@@ -36,7 +36,7 @@ import matplotlib.pyplot as plt
 import progressbar
 #from check.misc import bar_widgets
 
-from anova_preprocessing import *
+from preprocessing import *
 
 
 def create_train_test_split(X, y, test_size=0.20, random_state=42):
@@ -99,7 +99,7 @@ def main():
     x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
     test_ids = test_ids.astype(dtype=int)
     # X_train, X_test, Y_train, Y_test = create_train_test_split(x_train, y_train)
-    x_train, x_test, yb_train = preprocessing(x_train, x_test, y_train, 0.1, 150)
+    x_train, x_test, yb_train = preprocessing(x_train, x_test, y_train, 150)
     ###################### FEATURE PROCESSING ##################
     print("Feature processing")
 

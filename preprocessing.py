@@ -6,7 +6,6 @@ from run_fonctions import *
 from validation import *
 from anova_selection import anova_f
 from SMOTE import *
-from sklearn.feature_selection import SelectKBest, f_classif
 
 
 def transforme(X, f):
@@ -54,7 +53,7 @@ def preprocessing(
     print("Over/Under sampling done")
 
     strat = str(int(sampling_strat1 * 1000)) + "_" + str(int(sampling_strat2 * 1000))
-
+    """
     fs = SelectKBest(score_func=f_classif, k=150)
     X_t = fs.fit_transform(X_t, Y_t)
     X_t2 = fs.transform(X_t2)
@@ -64,7 +63,7 @@ def preprocessing(
     X_t = transforme(X_t, fs)
     X_t2 = transforme(X_t2, fs)
     # f = fs.get_support(1)
-    """
+
     print("K Best done")
 
     return X_t, X_t2, Y_t
