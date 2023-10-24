@@ -155,7 +155,7 @@ def ridge_regression(y, tx, lambda_):
     lambda_p = 2 * y.shape[0] * lambda_
     a = tx.T.dot(tx) + lambda_p * np.identity(np.shape(tx)[1])
     b = tx.T.dot(y)
-    w = np.linalg.solve(a, b)
+    w = np.linalg.lstsq(a, b)[0]
     loss = mse_loss(y, tx, w)
     return w, loss
 
