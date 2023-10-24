@@ -153,7 +153,7 @@ def ridge_regression(y, tx, lambda_):
         (D,) numpy array, float: last pair (w, loss)
     """
     lambda_p = 2 * y.shape[0] * lambda_
-    a = tx.T.dot(tx) + lambda_p * np.identity(np.shape(tx)[1])
+    a = tx.T.dot(tx) + lambda_p * np.identity(tx.shape[1])
     b = tx.T.dot(y)
     w = np.linalg.solve(a, b)
     loss = mse_loss(y, tx, w)

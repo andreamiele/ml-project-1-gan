@@ -1,11 +1,15 @@
 import numpy as np
 
-def square(mat):
-    m = np.mean(mat, axis = 0)
 
-def anova_f(x, y, strat, k = 20, use_autosave = True):
+def square(mat):
+    m = np.mean(mat, axis=0)
+
+
+def anova_f(x, y, strat, k=20, use_autosave=True):
     if use_autosave:
-        print("WARNING : the autosave feature does not distinguish parameters at more than 1e-3 precision")
+        print(
+            "WARNING : the autosave feature does not distinguish parameters at more than 1e-3 precision"
+        )
         try:
             f_stat = list(np.loadtxt("f_scores_after_strat" + strat + ".csv"))
         except:
@@ -17,21 +21,26 @@ def anova_f(x, y, strat, k = 20, use_autosave = True):
             ms = []
             for feature in range(nb_feature):
                 print(feature)
-                categories = np.unique(x[:,feature])
-                means_categ = {c: np.mean(y[x[:,feature] == c]) for c in categories}
-                ss_c = np.sum([(means_categ[c] - overall_mean) ** 2 * sum(x[:,feature] == c) for c in categories])
+                categories = np.unique(x[:, feature])
+                means_categ = {c: np.mean(y[x[:, feature] == c]) for c in categories}
+                ss_c = np.sum(
+                    [
+                        (means_categ[c] - overall_mean) ** 2 * sum(x[:, feature] == c)
+                        for c in categories
+                    ]
+                )
                 ss.append(ss_c)
                 df_c = len(categories) - 1
                 df.append(df_c)
-                ms_c = ss_c/df_c
+                ms_c = ss_c / df_c
                 ms.append(ms_c)
             ss_error = np.sum((y - overall_mean) ** 2 - np.sum(ss))
             df_error = len(y) - np.sum(df) + 1
-            ms_error = ss_error/df_error
+            ms_error = ss_error / df_error
             f_stat = []
             for feature in range(nb_feature):
-                f_stat.append(ms[feature]/ms_error)
-            
+                f_stat.append(ms[feature] / ms_error)
+
             np.savetxt("f_scores_after_strat" + strat + ".csv", f_stat, delimiter=",")
     else:
         print("Creating the F-score file - this might take a while")
@@ -42,20 +51,25 @@ def anova_f(x, y, strat, k = 20, use_autosave = True):
         ms = []
         for feature in range(nb_feature):
             print(feature)
-            categories = np.unique(x[:,feature])
-            means_categ = {c: np.mean(y[x[:,feature] == c]) for c in categories}
-            ss_c = np.sum([(means_categ[c] - overall_mean) ** 2 * sum(x[:,feature] == c) for c in categories])
+            categories = np.unique(x[:, feature])
+            means_categ = {c: np.mean(y[x[:, feature] == c]) for c in categories}
+            ss_c = np.sum(
+                [
+                    (means_categ[c] - overall_mean) ** 2 * sum(x[:, feature] == c)
+                    for c in categories
+                ]
+            )
             ss.append(ss_c)
             df_c = len(categories) - 1
             df.append(df_c)
-            ms_c = ss_c/df_c
+            ms_c = ss_c / df_c
             ms.append(ms_c)
         ss_error = np.sum((y - overall_mean) ** 2 - np.sum(ss))
         df_error = len(y) - np.sum(df) + 1
-        ms_error = ss_error/df_error
+        ms_error = ss_error / df_error
         f_stat = []
         for feature in range(nb_feature):
-            f_stat.append(ms[feature]/ms_error)
+            f_stat.append(ms[feature] / ms_error)
     top_k_indices = np.argpartition(f_stat, -k)[-k:]
 
     # Create a boolean array of length k with True at the indices of the k largest values

@@ -1,5 +1,16 @@
 import numpy as np
 from implementations import *
+from score import *
+
+
+def predict_labels(weights, x):
+    """Generates class predictions given weights, and a test data matrix"""
+    tx = np.c_[np.ones((x.shape[0], 1)), x]
+    y_pred = np.dot(tx, weights)
+    y_pred[np.where(y_pred <= 0.5)] = -1
+    y_pred[np.where(y_pred > 0.5)] = 1
+
+    return y_pred
 
 
 # Build the k_indices for the k_fold
@@ -13,7 +24,7 @@ def build_k_indices(y, k_fold, seed):
 
 
 # Function to do one run of cross_validation
-def cross_validation_one(y, x, initial_w, k_indices, k, hp, method, loss):
+def cross_validation_one(y, x, initial_w, k_indices, k, hp, method):
     # We retrieve the fold we consider as test
     x_test = x[k_indices[k], :]
     y_test = y[k_indices[k]]
@@ -30,75 +41,30 @@ def cross_validation_one(y, x, initial_w, k_indices, k, hp, method, loss):
 
     # We train a model and return its loss
     w = method(y_train, x_train, initial_w, hp)
-    loss_te = loss(y_test, x_test, w)
-    return loss_te
+    f1score = f1_score(y_test, predict_labels(w, x_test))
+    return f1score
 
 
 # Cross validation function
-def cross_validation(x, y, initial_w, method, loss, k_fold, hyperparams):
+def cross_validation(x, y, initial_w, method, k_fold, hyperparams):
     seed = 12
     k_fold = k_fold
     k_indices = build_k_indices(y, k_fold, seed)
 
-    losses_te = []
+    f1scores = []
     for hp in hyperparams:
         # we iterate over the hyperparameters to test
-        loss_te_temp = []
+        f1scores_temp = []
         for k in range(k_fold):
             # We compute the average accuracy in the k_fold for these hyperparameters
-            loss_te = cross_validation_one(
-                y, x, initial_w, k_indices, k, hp, method, loss
-            )
-            loss_te_temp.append(loss_te)
-        losses_te.append(np.mean(loss_te_temp))
+            f1score = cross_validation_one(y, x, initial_w, k_indices, k, hp, method)
+            f1scores_temp.append(f1score)
+        f1scores.append(np.mean(f1scores_temp))
     # We retrieve the hyperparameters minimizing the loss
-    best_hp = hyperparams[np.argmin(losses_te)]
-    best_loss = losses_te[np.argmin(losses_te)]
+    best_hp = hyperparams[np.argmin(f1scores)]
+    best_f1 = f1scores[np.argmin(f1scores)]
 
-    return best_hp, best_loss
-
-
-# K nearest neighbors classifying technique
-def knn(x_train, y_train, x_test, k):
-    y_test = np.ones(x_test.shape[0])
-    for i, x in enumerate(x_test):
-        # for each line in the test set we find the k nearest neighbors
-        distances = []
-        for j, x_t in enumerate(x_train):
-            # we compute the distances to all elements of the train set
-            distances.append((np.linalg.norm(x - x_t), j))
-        # we sort the distances to get the k lowest
-        distances = sorted(distances)
-        count = 0
-        # we count the number of neighbors which have 1 in y_train
-        for nn in distances[:k]:
-            if y_train[nn[1]] == 1:
-                count += 1
-        # we predict the corresponding class
-        if count < k / 2:
-            y_test[i] = -1
-    return y_test
-
-
-# Calculate hessian for the newton emthod logistic regression
-def calculate_hessian(y, tx, w):
-    pred = tx.dot(w)
-    print(pred.shape)
-    pred = np.diag([sigmoid(p) for p in pred])
-    r = np.multiply(pred, (1 - pred))
-    return tx.T.dot(r).dot(tx) * (1 / y.shape[0])
-
-
-# Logistic regression with newton method
-def logreg_newton_gd(y, tx, w, max_iters, gamma):
-    for n_iters in range(max_iters):
-        grad = logreg_grad(y, tx, w)
-        hess = calculate_hessian(y, tx, w)
-        w = w - gamma * np.linalg.solve(hess, grad)
-    return w, logreg_loss(y, tx, w)
-
-
-import numpy as np
+    return best_hp, best_f1
 
 
 def standardize(x):
