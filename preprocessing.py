@@ -18,7 +18,7 @@ def transforme(X, f):
 
 
 def preprocessing(
-    X_train, X_test, Y_train, Kselected, sampling_strat1=0.15, sampling_strat2=0.5
+    X_train, X_test, Y_train, Kselected, sampling_strat1=0.105, sampling_strat2=0.5
 ):
     imp = SimpleImputer()
     imp = imp.fit(X_train)
@@ -52,7 +52,9 @@ def preprocessing(
     )
     print("Over/Under sampling done")
 
-    fs = anova_f(X_t, Y_t, k=Kselected)
+    strat = str(sampling_strat1) + str(sampling_strat2)
+
+    fs = anova_f(X_t, Y_t, strat, k=Kselected)
     X_t = transforme(X_t, fs)
     X_t2 = transforme(X_t2, fs)
     # f = fs.get_support(1)
