@@ -19,11 +19,24 @@ def build_poly(x, degree):
     return ret
 
 
-def predict_labels_threshold(weights, data, threshold):
-    """Generates class predictions given weights, and a test data matrix"""
-    y_pred = np.dot(data, weights)
-    thresholds = np.quantile(y_pred, threshold)
-    y_pred[np.where(y_pred <= thresholds)] = -1
-    y_pred[np.where(y_pred > thresholds)] = 1
+def tx(x):
+    return np.c_[np.ones((x.shape[0], 1)), x]
 
-    return y_pred
+
+def predict(x, w, threshold=None, proba=False):
+    tx = tx(x)
+    if proba:
+        predictions = sigmoid(tx.dot(w))
+    else:
+        predictions = tx.dot(w)
+    if threshold == None:
+        return [1 if prediction > 0.5 else -1 for prediction in predictions]
+    else:
+        threshold_ = np.quantile(predictions, threshold)
+        return [1 if prediction > threshold_ else -1 for prediction in predictions]
+
+
+def build_model_data(x, y):
+    # Form (y,tX) to get regression data in matrix form.      #
+    tx = tx(x)
+    return y, tx

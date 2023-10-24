@@ -107,7 +107,7 @@ def main(training=False):
     tx_test = build_poly(x_test2, degree=_degree)
     w, loss = ridge_regression(yb_train, tx, lambda_=_lambda)
 
-    y_pred = predict_labels_threshold(w, tx_test, _threshold)
+    y_pred = predict(tx_test, w, threshold=_threshold, proba=False)
 
     if training:
         f1 = f1_score(Y_test, y_pred)

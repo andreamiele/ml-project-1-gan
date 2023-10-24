@@ -66,6 +66,15 @@ def predict_proba_threshold(x, w, threshold):
     probabilities = sigmoid(tx.dot(w))
     return [1 if p > threshold else -1 for p in probabilities]
 
+def predict(weights,data,threshold=None,proba=False):
+    if proba:
+        
+    else:
+    
+    if threshold==None:
+        return [1 if prediction > 0.5 else -1 for prediction in predictions]
+    else:
+        return [1 if prediction > threshold else -1 for prediction in predictions]
 
 """
 X_train, X_test, Y_train, Y_test = create_train_test_split(x_train, y_train)
