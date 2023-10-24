@@ -1,6 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-### >>> IMPORT
+import numpy as np
+from imp import *
+from helpers import *
+import matplotlib.pyplot as plt
+from run_fonctions import *
+from validation import *
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectKBest, f_classif
@@ -19,7 +22,7 @@ from sklearn.metrics import (
     f1_score,
     get_scorer_names,
 )
-from anova_selection import anova_f
+
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
@@ -33,129 +36,143 @@ import matplotlib.pyplot as plt
 import progressbar
 #from check.misc import bar_widgets
 
+from anova_preprocessing import *
 
-# To create a submission:
 
-x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
-test_ids = test_ids.astype(dtype=int)
-
-X_train, Y_train, X_test = x_train, y_train, x_test
-
-# For splitting data:
-
-"""
-def create_train_test_split(X, y, test_size=0.25, random_state=42):
+def create_train_test_split(X, y, test_size=0.20, random_state=42):
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state
     )
     return X_train, X_test, y_train, y_test
 
 
+"""
+x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
+test_ids = test_ids.astype(dtype=int)
+X_train, Y_train, X_test = x_train, y_train, x_test
+"""
+# For splitting data:
+
+
+def predict_labels(weights, data):
+    """Generates class predictions given weights, and a test data matrix"""
+    y_pred = np.dot(data, weights)
+
+    y_pred[np.where(y_pred <= 0)] = -1
+    y_pred[np.where(y_pred > 0)] = 1
+
+    return y_pred
+
+
+def predict_labels_threshold(weights, data, threshold):
+    """Generates class predictions given weights, and a test data matrix"""
+    y_pred = np.dot(data, weights)
+    thresholds = np.quantile(y_pred, threshold)
+    y_pred[np.where(y_pred <= thresholds)] = -1
+    y_pred[np.where(y_pred > thresholds)] = 1
+
+    return y_pred
+
+
+def predict_proba(x, w):
+    tx = np.c_[np.ones((x.shape[0], 1)), x]
+    probabilities = sigmoid(tx.dot(w))
+    return [1 if p > 0.1 else -1 for p in probabilities]
+
+
+def predict_proba_threshold(x, w, threshold):
+    tx = np.c_[np.ones((x.shape[0], 1)), x]
+    probabilities = sigmoid(tx.dot(w))
+    return [1 if p > threshold else -1 for p in probabilities]
+
+
+"""
 X_train, X_test, Y_train, Y_test = create_train_test_split(x_train, y_train)
+
+
+x_train, x_test, yb_train = preprocessing(X_train, X_test, Y_train, 0.1, 30)
 """
 
 
-import copy
-import numpy as np
-from sklearn.metrics import accuracy_score
+def main():
+
+    x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
+    test_ids = test_ids.astype(dtype=int)
+    # X_train, X_test, Y_train, Y_test = create_train_test_split(x_train, y_train)
+    x_train, x_test, yb_train = preprocessing(x_train, x_test, y_train, 0.1, 150)
+    ###################### FEATURE PROCESSING ##################
+    print("Feature processing")
+
+    # Remove selected features
+    # input_data_train, input_data_test = removecols(input_data_train, input_data_test, [14,15,17,18,24,25,27,28])
+
+    # Standardize and sentralize data
+    x_train2 = standardize(x_train)
+    x_test2 = standardize(x_test)
+
+    # Build model test data
+    # y_test, tx_test = build_model_data(x_test,yb_test)
+
+    ###################### RUN FUNCTIONS #####################
+    # w, loss = run_gradient_descent(yb_train, x_train)
+    # Build model test data must be applied when running run_gradient_descent
+    # y_test, tx_test = build_model_data(x_test,yb_test)
+
+    # w, loss = run_stochastic_gradient_descent(yb_train, x_train)
+    # Build model test data must be applied when running run_stochastic_gradient_descent
+    # y_test, tx_test = build_model_data(x_test,yb_test)
+
+    # w, loss, degree = run_least_square(yb_train,x_train)
+    # Build model poly data, has to be done wen running run_least_square
+    # tx_test = build_poly(x_test,degree)
+
+    w, loss, degree = run_ridge_regression(yb_train, x_train2)
+    # Build poly data, has to be done when running run_ridge_regression
+    tx_test = build_poly(x_test2, degree)
+
+    # w, loss = run_logistic_regression(yb_train, x_train)
+    # Build model test data must be applied when running run_logistic_regression
+    # y_test, tx_test = build_model_data(x_test, y_test)
+
+    # w, loss = run_reg_logistic_regression(yb_train, x_train)
+    # Build model test data must be applied when running run_reg_logistic_regression
+    # y_test, tx_test = build_model_data(x_test,yb_test)
+
+    # When performing stacking, the predicted labels are given directly #
+    # y_pred = stacking(yb_train,x_train,yb_test,x_test)
+
+    ###################### VALIDATIONS ########################
+    # gradientdescent_gamma(yb_train, x_train)
+
+    # stochastic_gradientdescent_gamma(yb_train, x_train)
+
+    # leastsquares_degree(yb_train, x_train)
+
+    # ridgeregression_lambda(yb_train, x_train)
+
+    # ridgeregression_degree_lambda(yb_train, x_train)
+
+    # logregression_gamma(yb_train, x_train)
+
+    # logregression_gamma_degree(yb_train, x_train)
+
+    # reglogregression_gamma_lambda(yb_train, x_train)
+
+    # stacking_crossvalidation(yb_train, x_train)
+
+    ################## MAKE PREDICTIONS #####################
+
+    y_pred = predict_labels_threshold(w, tx_test, 0.87)
+    """
+    f1 = f1_score(Y_test, y_pred)
+    accuracy = accuracy_score(Y_test, y_pred)
+    print("f1: " + str(f1))
+    print("acc: " + str(accuracy))
+    """
+    create_csv_submission(test_ids, y_pred, "resultsTIC.csv")
+    print("Finished")
+    return 0
 
 
-class LogisticRegression:
-    def __init__(self):
-        self.losses = []
-        self.train_accuracies = []
-
-    def fit(self, x, y, epochs):
-        x = self._transform_x(x)
-        y = self._transform_y(y)
-
-        self.weights = np.zeros(x.shape[1])
-        self.bias = 0
-
-        for i in range(epochs):
-            x_dot_weights = np.matmul(self.weights, x.transpose()) + self.bias
-            pred = self._sigmoid(x_dot_weights)
-            loss = self.compute_loss(y, pred)
-            error_w, error_b = self.compute_gradients(x, y, pred)
-            self.update_model_parameters(error_w, error_b)
-
-            pred_to_class = [1 if p > 0.5 else 0 for p in pred]
-            self.train_accuracies.append(accuracy_score(y, pred_to_class))
-            self.losses.append(loss)
-
-    def compute_loss(self, y_true, y_pred):
-        # binary cross entropy
-        y_zero_loss = y_true.dot(np.log(y_pred + 1e-9))
-        y_one_loss = (1 - y_true).dot(np.log(1 - y_pred + 1e-9))
-        return -np.mean(y_zero_loss + y_one_loss)
-
-    def compute_gradients(self, x, y_true, y_pred):
-        # derivative of binary cross entropy
-        difference = y_pred - y_true
-        gradient_b = np.mean(difference)
-        gradients_w = np.matmul(x.transpose(), difference)
-        gradients_w = np.array([np.mean(grad) for grad in gradients_w])
-
-        return gradients_w, gradient_b
-
-    def update_model_parameters(self, error_w, error_b):
-        self.weights = self.weights - 0.1 * error_w
-        self.bias = self.bias - 0.1 * error_b
-
-    def predict(self, x):
-        x_dot_weights = np.matmul(x, self.weights.transpose()) + self.bias
-        probabilities = self._sigmoid(x_dot_weights)
-        return [1 if p > 0.5 else 0 for p in probabilities]
-
-    def predict_proba(self, x):
-        x_dot_weights = np.matmul(x, self.weights.transpose()) + self.bias
-        probabilities = self._sigmoid(x_dot_weights)
-        return [1 if p > 0.5 else 0 for p in probabilities]
-
-    def _sigmoid(self, x):
-        return np.array([self._sigmoid_function(value) for value in x])
-
-    def _sigmoid_function(self, x):
-        if x >= 0:
-            z = np.exp(-x)
-            return 1 / (1 + z)
-        else:
-            z = np.exp(x)
-            return z / (1 + z)
-
-    def _transform_x(self, x):
-        x = copy.deepcopy(x)
-        return x
-
-    def _transform_y(self, y):
-        y = copy.deepcopy(y)
-        return y.reshape(y.shape[0], 1)
-
-
-imp = SimpleImputer(missing_values=np.nan, strategy="mean")
-imp = imp.fit(X_train)
-X_train = imp.transform(X_train)
-imp = imp.fit(X_test)
-X_test = imp.transform(X_test)
-from imblearn.over_sampling import BorderlineSMOTE
-
-X_t = np.delete(X_train, [9, 11, 12, 18, 19, 22], 1)
-X_t2 = np.delete(X_test, [9, 11, 12, 18, 19, 22], 1)
-
-over = BorderlineSMOTE(sampling_strategy=0.104)
-under = RandomUnderSampler(sampling_strategy=0.5)
-steps = [("o", over), ("u", under)]
-pipeline = Pipeline(steps=steps)
-X_t, Y_t = pipeline.fit_resample(X_t, Y_train.ravel())
-print("Smote done")
-
-fs = anova_f(X_t, Y_t, k = 20)
-X_t = fs.fit_transform(X_t, Y_t)
-X_t2 = fs.transform(X_t2)
-f = fs.get_support(1)
-print("K Best done")
-
-lr = LogisticRegression()
-lr.fit(X_t, Y_t, epochs=50)
-pred = lr.predict_proba(X_t2)
-print(pred)
+### Run main function
+main()

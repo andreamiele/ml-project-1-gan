@@ -10,6 +10,7 @@ def anova_f(x, y, k = 20):
     df = []
     ms = []
     for feature in range(nb_feature):
+        print(feature)
         categories = np.unique(x[:,feature])
         means_categ = {c: np.mean(y[x[:,feature] == c]) for c in categories}
         ss_c = np.sum([(means_categ[c] - overall_mean) ** 2 * sum(x[:,feature] == c) for c in categories])
@@ -28,7 +29,7 @@ def anova_f(x, y, k = 20):
     top_k_indices = np.argpartition(f_stat, -k)[-k:]
 
     # Create a boolean array of length k with True at the indices of the k largest values
-    k_best = np.zeros(f_stat.shape, dtype=bool)
+    k_best = np.zeros(len(f_stat), dtype=bool)
     k_best[top_k_indices] = True
 
     return k_best
