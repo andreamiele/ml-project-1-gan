@@ -34,12 +34,12 @@ import matplotlib.pyplot as plt
 x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
 test_ids = test_ids.astype(dtype=int)
 
-X_train, Y_train, X_test = x_train, y_train, x_test
+X_trainF, Y_trainF, X_testF = x_train, y_train, x_test
 
 # For splitting data:
 
 
-def create_train_test_split(X, y, test_size=0.25, random_state=42):
+def create_train_test_split(X, y, test_size=0.20, random_state=42):
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state
     )
@@ -55,6 +55,88 @@ X_train = imp.transform(X_train)
 imp = imp.fit(X_test)
 X_test = imp.transform(X_test)
 
+imp = SimpleImputer(missing_values=np.nan, strategy="mean")
+imp = imp.fit(X_train)
+X_trainF = imp.transform(X_trainF)
+imp = imp.fit(X_test)
+X_testF = imp.transform(X_testF)
+from imblearn.over_sampling import BorderlineSMOTE
+
+f1 = []
+acc = []
+model = []
+X_train = np.delete(X_train, [9, 11, 12, 18, 19, 22], 1)
+X_test = np.delete(X_test, [9, 11, 12, 18, 19, 22], 1)
+
+
+X_trainF = np.delete(X_trainF, [9, 11, 12, 18, 19, 22], 1)
+X_testF = np.delete(X_testF, [9, 11, 12, 18, 19, 22], 1)
+for i in range(20):
+    over = BorderlineSMOTE(sampling_strategy=0.101)
+    under = RandomUnderSampler(sampling_strategy=0.5)
+    steps = [("o", over), ("u", under)]
+    pipeline = Pipeline(steps=steps)
+    x, y = pipeline.fit_resample(X_train, Y_train)
+    xf, yf = pipeline.fit_resample(X_trainF, Y_trainF)
+
+    fs = SelectKBest(score_func=f_classif, k=150)
+    x = fs.fit_transform(x, y)
+    f = fs.get_support(1)
+    x_test = X_test[:, f]
+
+    fs = SelectKBest(score_func=f_classif, k=150)
+    xf = fs.fit_transform(xf, yf)
+    f = fs.get_support(1)
+    x_testf = X_testF[:, f]
+
+    gb_classifier = GradientBoostingClassifier(
+        n_estimators=400,
+        learning_rate=0.02,
+        min_samples_split=600,
+        max_depth=9,
+        random_state=10,
+        min_samples_leaf=30,
+        max_features=19,
+        subsample=0.85,
+    )
+    gb_classifier.fit(x, y)
+    y_probabilities = gb_classifier.predict_proba(x_test)[:, 1]
+
+    y_probabilities[y_probabilities >= 0.616177553416097] = 1
+    y_probabilities[y_probabilities < 0.616177553416097] = -1
+    prediction = y_probabilities
+    accuracy = accuracy_score(Y_test, prediction)
+    precision = precision_score(Y_test, prediction)
+    recall = recall_score(Y_test, prediction)
+    f1score = f1_score(Y_test, prediction)
+    f1.append(f1score)
+    acc.append(accuracy)
+    print(str(i) + " f1: " + str(f1score))
+    gb_classifier = GradientBoostingClassifier(
+        n_estimators=400,
+        learning_rate=0.02,
+        min_samples_split=600,
+        max_depth=9,
+        random_state=10,
+        min_samples_leaf=30,
+        max_features=19,
+        subsample=0.85,
+    )
+    gb_classifier.fit(xf, yf)
+    y_probabilities2 = gb_classifier.predict_proba(x_testf)[:, 1]
+
+    y_probabilities2[y_probabilities2 >= 0.616177553416097] = 1
+    y_probabilities2[y_probabilities2 < 0.616177553416097] = -1
+    prediction2 = y_probabilities2
+    name = "TESTINGROW" + str(i) + ".csv"
+    create_csv_submission(test_ids, prediction2, name)
+
+print(f1)
+print(acc)
+print(np.max(f1))
+# create_csv_submission(test_ids, prediction, "CeciEstUneTest18.csv")
+
+
 """
 imputer = KNNImputer(n_neighbors=3)
 X_train = imputer.fit_transform(X_train)
@@ -68,17 +150,19 @@ X_train = imputer.fit_transform(X_train)
 X_test = imputer.transform(X_test)
 print("Iterative Imputer done")
 """
+"""
 f1 = []
 acc = []
-for k in range(25, 300, 25):
-    print(str(k) + " is being started")
-    fs = SelectKBest(score_func=f_classif, k=k)
+for i in range(110, 120):
+    print(str(i) + " is being started")
+    fs = SelectKBest(score_func=f_classif, k=125)
     X_t = fs.fit_transform(X_train, Y_train)
     f = fs.get_support(1)
     X_t2 = X_test[:, f]
     print("K Best done")
 
-    over = SMOTE(sampling_strategy=0.15)
+    s_star = i * 0.001
+    over = BorderlineSMOTE(sampling_strategy=s_star)
     under = RandomUnderSampler(sampling_strategy=0.5)
     steps = [("o", over), ("u", under)]
     pipeline = Pipeline(steps=steps)
@@ -109,14 +193,14 @@ for k in range(25, 300, 25):
     f1score = f1_score(Y_test, prediction)
     f1.append(f1score)
     acc.append(accuracy)
-    print(str(k) + " is done")
+    print(str(i) + " is done")
 np.savetxt("results/f1.txt", f1)
 np.savetxt("results/acc.txt", acc)
 
-plt.plot(range(25, 300, 25), f1)
-plt.plot(range(25, 300, 25), acc)
+plt.plot(range(110, 120), f1)
+plt.plot(range(110, 120), acc)
 plt.show()
-
+"""
 
 """
 # Threshold tuning
