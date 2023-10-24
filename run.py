@@ -2,7 +2,7 @@
 from helpers import *
 from implementations import *
 from preprocessing import *
-from utilities import *
+from utils import *
 
 """
 def logreg_grad_sgd(y, tx, w):
@@ -106,7 +106,6 @@ def main(training=False):
     tx = build_poly(x_train2, degree=_degree)
     tx_test = build_poly(x_test2, degree=_degree)
     w, loss = ridge_regression(yb_train, tx, lambda_=_lambda)
-
     y_pred = predict(tx_test, w, threshold=_threshold, proba=False)
 
     if training:
