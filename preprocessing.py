@@ -4,7 +4,7 @@ from helpers import *
 from implementations import *
 from run_fonctions import *
 from anova_selection import anova_f
-from SMOTE import *
+from OverUnderSampling import *
 
 
 def transforme(X, f):
