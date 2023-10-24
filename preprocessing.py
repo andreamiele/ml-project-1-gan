@@ -52,7 +52,9 @@ def preprocessing(
     )
     print("Over/Under sampling done")
 
-    fs = anova_f(X_t, Y_t, k=Kselected)
+    strat = str(sampling_strat1) + str(sampling_strat2)
+
+    fs = anova_f(X_t, Y_t, strat, k=Kselected)
     X_t = transforme(X_t, fs)
     X_t2 = transforme(X_t2, fs)
     # f = fs.get_support(1)
