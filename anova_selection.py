@@ -3,9 +3,9 @@ import numpy as np
 def square(mat):
     m = np.mean(mat, axis = 0)
 
-def anova_f(x, y, k = 20):
+def anova_f(x, y, strat, k = 20):
     try:
-        f_stat = list(np.loadtxt("f_scores.csv"))
+        f_stat = list(np.loadtxt("f_scores_after_strat" + strat + ".csv"))
     except:
         print("Creating the F-score file - this might take a while")
         nb_data, nb_feature = np.shape(x)
@@ -30,7 +30,7 @@ def anova_f(x, y, k = 20):
         for feature in range(nb_feature):
             f_stat.append(ms[feature]/ms_error)
         
-        np.savetxt("f_scores.csv", f_stat, delimiter=",")
+        np.savetxt("f_scores_after_strat" + strat + ".csv", f_stat, delimiter=",")
     
     top_k_indices = np.argpartition(f_stat, -k)[-k:]
 
