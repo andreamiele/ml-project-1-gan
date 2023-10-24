@@ -3,12 +3,24 @@ from helpers import *
 from implementations import *
 from imblearn.over_sampling import SMOTE
 from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import f_classif
+from sklearn.feature_selection import f_classif, chi2
 from sklearn.impute import SimpleImputer
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
+import pandas as pd
+from sklearn.metrics import (
+    confusion_matrix,
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    get_scorer_names,
+)
 
+# df = pd.read_csv("2015.csv")
+
+# print(df.value_counts("_MICHD"))
 
 x, x_test, y, _, test_ids = load_csv_data("dataset/")
 test_ids = test_ids.astype(dtype=int)
@@ -16,8 +28,8 @@ test_ids = test_ids.astype(dtype=int)
 
 from sklearn.model_selection import train_test_split
 
-
-def create_train_test_split(X, y, test_size=0.25, random_state=42):
+"""
+def create_train_test_split(X, y, test_size=0.20, random_state=42):
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state
     )
@@ -25,7 +37,7 @@ def create_train_test_split(X, y, test_size=0.25, random_state=42):
 
 
 x, x_test, y, y_test = create_train_test_split(x, y)
-
+"""
 
 imp = SimpleImputer(missing_values=np.nan, strategy="mean")
 imp = imp.fit(x)
@@ -33,13 +45,63 @@ x = imp.transform(x)
 
 imp = imp.fit(x_test)
 x_test = imp.transform(x_test)
+
 """
-fs = SelectKBest(score_func=f_classif, k=320)
-X_selected = fs.fit_transform(x, y)
-f = fs.get_support(1)
-x = x[:, f]
-x_test = x_test[:, f]
+from sklearn.preprocessing import MinMaxScaler
+
+scaler = MinMaxScaler(feature_range=(0, 1))
+
+# Fit and transform the scaler on your training data
+x = scaler.fit_transform(x)
+
+# Transform your test data using the same scaler
+x_test = scaler.transform(x_test)
 """
+
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+x = scaler.fit_transform(x)
+x_test = scaler.transform(x_test)
+
+fs = SelectKBest(score_func=f_classif, k=38)
+x = fs.fit_transform(x, y)
+x_test = fs.transform(x_test)
+f = fs.get_support(indices=True)
+
+
+"""
+f1T = []
+accT = []
+for i in range(5, 120, 2):
+    x_p = x
+    x_test_p = x_test
+    y_p = y
+    fs = SelectKBest(score_func=f_classif, k=i)
+    X_selected = fs.fit_transform(x_p, y)
+    f = fs.get_support(1)
+    x_p = x_p[:, f]
+    x_test_p = x_test_p[:, f]
+    over = SMOTE(sampling_strategy=0.1)
+    under = RandomUnderSampler(sampling_strategy=0.5)
+    steps = [("o", over), ("u", under)]
+    pipeline = Pipeline(steps=steps)
+    x_p, y_p = pipeline.fit_resample(x_p, y_p)
+    logreg = LogisticRegression(max_iter=100)
+    logreg.fit(x_p, y_p)
+    prediction = logreg.predict(x_test_p)
+    f1 = f1_score(y_test, prediction)
+    f1T.append(f1)
+    acc = accuracy_score(y_test, prediction)
+    accT.append(acc)
+    print("F1 :" + str(f1) + " Acc :" + str(acc))
+print(f1T)
+print(accT)
+plt.plot(range(5, 120, 2), f1T)
+plt.plot(range(5, 120, 2), accT)
+plt.show()
+"""
+
 print(x.shape)
 print(y.shape)
 print(x_test.shape)
@@ -95,19 +157,29 @@ print(
     + "\n-------------------------------------\n"
 )
 
+"""
+over = SMOTE(sampling_strategy=0.15)
+under = RandomUnderSampler(sampling_strategy=0.8)
+steps = [("o", over), ("u", under)]
+pipeline = Pipeline(steps=steps)
+x, y = pipeline.fit_resample(x, y)
+"""
+from imblearn.over_sampling import BorderlineSMOTE
 
-over = SMOTE(sampling_strategy=0.1)
+over = BorderlineSMOTE(sampling_strategy=0.15)
 under = RandomUnderSampler(sampling_strategy=0.5)
 steps = [("o", over), ("u", under)]
 pipeline = Pipeline(steps=steps)
 x, y = pipeline.fit_resample(x, y)
 
+
+"""
 from sklearn.preprocessing import StandardScaler
 
 scaler = StandardScaler()
 x = scaler.fit_transform(x)
 x_test = scaler.transform(x_test)
-
+"""
 """
 from imblearn.under_sampling import RandomUnderSampler
 undersampler = RandomUnderSampler(sampling_strategy="auto", random_state=42)
@@ -123,9 +195,6 @@ print(
     + str(np.count_nonzero(y == 1))
     + "\n-------------------------------------"
 )
-
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.model_selection import RandomizedSearchCV
 
 
 """def tune_gradient_boosting_hyperparameters(x, y):
@@ -170,7 +239,7 @@ best_gbc = tune_gradient_boosting_hyperparameters(x, y)"""
     max_depth=4,
     learning_rate=0.1,
 )"""
-
+'''
 from sklearn.metrics import (
     f1_score,
     accuracy_score,
@@ -215,7 +284,7 @@ plt.plot(range(1, 300, 20), accuracy_t)
 # prediction = gb_classifier.predict(x_test)
 # print("pred -1: " + str(np.count_nonzero(prediction == -1)))
 # create_csv_submission(test_ids, prediction, "y_predGBC.csv")  # F1:    | Acc:"""
-
+'''
 
 """
 gb_classifier = GradientBoostingClassifier(n_estimators=100, random_state=42)
@@ -223,17 +292,109 @@ gb_classifier.fit(x, y)
 prediction = gb_classifier.predict(x_test)
 print("pred -1: " + str(np.count_nonzero(prediction == -1)))
 create_csv_submission(test_ids, prediction, "y_predGBC.csv")  # F1:    | Acc:"""
-"""
+
+import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 
-logreg = LogisticRegression(max_iter=1000)
+logreg = LogisticRegression(max_iter=400, penalty=None, multi_class="ovr")
 logreg.fit(x, y)
 prediction = logreg.predict(x_test)
-print("pred -1: " + str(np.count_nonzero(prediction == -1)))
-create_csv_submission(
-    test_ids, prediction, "y_predLOGREG.csv"
-)  # F1: 0.338    | Acc: 0.848
+create_csv_submission(test_ids, prediction, "y_predLOGREG.csv")
+"""
+proba = logreg.predict_proba(x_test)[:, 1]
+print(np.quantile(proba, 0.848))
+plt.hist(proba)
+plt.show()
+proba[proba >= np.quantile(proba, 0.848)] = 1
+proba[proba < np.quantile(proba, 0.848)] = -1
+print("pred -1: " + str(np.count_nonzero(proba == -1)))
+create_csv_submission(test_ids, proba, "y_predLOGREG.csv")  # F1: 0.338    | Acc: 0.848
+"""
 
+"""
+from sklearn.linear_model import SGDClassifier
+
+clf = SGDClassifier(
+    loss="log_loss",
+    penalty=None,
+    alpha=0.0001,
+    max_iter=800,
+    tol=0.00001,
+    shuffle=True,
+    verbose=0,
+    random_state=1,
+    learning_rate="optimal",
+    eta0=3,
+)
+clf.fit(x, y)
+
+
+predict = clf.predict(x_test)
+print("pred -1: " + str(np.count_nonzero(predict == -1)))
+create_csv_submission(
+    test_ids, predict, "y_predSGDLOGRED.csv"
+)  # F1: 0.338    | Acc: 0.848
+"""
+
+"""
+f1T = []
+accT = []
+maxi = 0
+max_idx = 0
+for i in range(300, 1400, 10):
+    print("Testing :" + str(i))
+    logreg = LogisticRegression(max_iter=i)
+    logreg.fit(x, y)
+    prediction = logreg.predict(x_test)
+
+    proba = logreg.predict_proba(x_test)[:, 1]
+    print(np.quantile(proba, 0.837))
+
+    proba[proba >= np.quantile(proba, 0.837)] = 1
+    proba[proba < np.quantile(proba, 0.837)] = -1
+    f1 = f1_score(y_test, proba)
+    if f1 > maxi:
+        maxi = f1
+        max_idx = i
+    f1T.append(f1)
+    acc = accuracy_score(y_test, proba)
+    accT.append(acc)
+    print("F1 :" + str(f1) + " Acc :" + str(acc))
+print("max is for : " + str(max_idx))
+print(f1T)
+print(accT)
+plt.plot(range(300, 1400, 10), f1T)
+plt.plot(range(300, 1400, 10), accT)
+plt.show()
+"""
+
+"""
+f1T = []
+accT = []
+maxi = 0
+max_idx = 0
+for i in range(300, 950, 1):
+    p = i * 0.001
+    print("Testing :" + str(p))
+    probi = clf.predict_proba(x_test)[:, 1]
+    q = np.quantile(probi, p)
+    probi[probi >= q] = 1
+    probi[probi < q] = -1
+    print("pred -1: " + str(np.count_nonzero(probi == -1)))
+    f1 = f1_score(y_test, probi)
+    if f1 > maxi:
+        maxi = f1
+        max_idx = p
+    f1T.append(f1)
+    acc = accuracy_score(y_test, probi)
+    accT.append(acc)
+    print("F1 :" + str(f1) + " Acc :" + str(acc))
+print("max is for : " + str(max_idx))
+print(f1T)
+print(accT)
+plt.plot(range(300, 950, 1), f1T)
+plt.plot(range(300, 950, 1), accT)
+plt.show()
 """
 """
 # Support Vector Machines
@@ -258,11 +419,12 @@ create_csv_submission(
     test_ids, prediction, "y_predDTC.csv"
 )  # F1: 0.227     | Acc: 0.799
 """
-"""
-# Random Forest
+
 from sklearn.ensemble import RandomForestClassifier
 
-rf = RandomForestClassifier()
+rf = RandomForestClassifier(
+    criterion="log_loss", max_depth=9, n_estimators=500, min_samples_leaf=25
+)
 rf.fit(x, y)
 prediction = rf.predict(x_test)
 print("pred -1: " + str(np.count_nonzero(prediction == -1)))
@@ -291,3 +453,43 @@ print("pred -1: " + str(np.count_nonzero(prediction == -1)))
 create_csv_submission(
     test_ids, prediction, "y_predKNN.csv"
 )  # F1: 0.268     | Acc: 0.762"""
+
+"""
+from sklearn.model_selection import ParameterGrid
+from sklearn.linear_model import SGDClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_auc_score
+import parfit.parfit as pf
+
+grid = {
+    "criterion": ["log_loss"],
+    "max_depth": [9],
+    "n_estimators": [500],
+    "min_samples_leaf": [25],
+    # number of epochs
+}
+paramGrid = ParameterGrid(grid)
+
+bestModel, bestScore, allModels, allScores = pf.bestFit(
+    RandomForestClassifier,
+    paramGrid,
+    x,
+    y,
+    x_test,
+    y_test,
+    metric=f1_score,
+    greater_is_better=True,
+    scoreLabel="F1",
+)
+
+
+print(bestModel, bestScore)
+"""
+"""
+learning_rate=0.005,
+        min_samples_split=600,
+        max_depth=9,
+        random_state=10,
+        min_samples_leaf=30,
+        max_features=19,
+        subsample=0.85"""

@@ -93,9 +93,9 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
     # Iterates through the number of steps                            #
     for n_iter in range(max_iters):
-        loss = sum(sum(np.logaddexp(0, tx.dot(w)) - y * (tx.dot(w))))
+        loss = np.sum(np.sum(np.logaddexp(0, tx.dot(w)) - y * (tx.dot(w)))) / y.shape[0]
         prediction = sigmoid(tx.dot(w))
-        gradient = tx.T.dot(prediction - y)
+        gradient = tx.T.dot(prediction - y) / y.shape[0]
 
         # Gradient w by descent update
         w = w - (gamma * gradient)

@@ -1,42 +1,23 @@
+# Import
 import numpy as np
-from imp import *
-from helpers import *
 import matplotlib.pyplot as plt
-from run_fonctions import *
-from validation import *
-from sklearn.linear_model import LogisticRegression
+
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.model_selection import RandomizedSearchCV
 from sklearn.impute import SimpleImputer
-from sklearn.experimental import enable_iterative_imputer
-from sklearn.impute import IterativeImputer
-from sklearn.metrics import precision_recall_curve
-from sklearn.impute import KNNImputer
-from sklearn.metrics import (
-    confusion_matrix,
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    get_scorer_names,
-)
+from sklearn.metrics import accuracy_score, f1_score
 
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
 
+# Import helper functions
 from helpers import *
 from implementations import *
-
-import pandas as pd
-
-import matplotlib.pyplot as plt
-import progressbar
-from check.misc import bar_widgets
-
-from new_preprocessing import *
+from run_fonctions import *
+from validation import *
+from imp import *
+from preprocessing import *
 
 
 def create_train_test_split(X, y, test_size=0.20, random_state=42):
@@ -94,17 +75,14 @@ x_train, x_test, yb_train = preprocessing(X_train, X_test, Y_train, 0.1, 30)
 """
 
 
-def main():
-
+def main(training=False):
     x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
     test_ids = test_ids.astype(dtype=int)
-    # X_train, X_test, Y_train, Y_test = create_train_test_split(x_train, y_train)
-    x_train, x_test, yb_train = preprocessing(x_train, x_test, y_train, 0.1, 150)
-    ###################### FEATURE PROCESSING ##################
-    print("Feature processing")
 
-    # Remove selected features
-    # input_data_train, input_data_test = removecols(input_data_train, input_data_test, [14,15,17,18,24,25,27,28])
+    if training:
+        x_train, x_test, y_train, y_test = create_train_test_split(x_train, y_train)
+
+    x_train, x_test, yb_train = preprocessing(x_train, x_test, y_train, 150, 0.15, 0.8)
 
     # Standardize and sentralize data
     x_train2 = standardize(x_train)
@@ -163,13 +141,13 @@ def main():
     ################## MAKE PREDICTIONS #####################
 
     y_pred = predict_labels_threshold(w, tx_test, 0.87)
-    """
-    f1 = f1_score(Y_test, y_pred)
-    accuracy = accuracy_score(Y_test, y_pred)
-    print("f1: " + str(f1))
-    print("acc: " + str(accuracy))
-    """
-    create_csv_submission(test_ids, y_pred, "resultsTIC.csv")
+    if training:
+        f1 = f1_score(Y_test, y_pred)
+        accuracy = accuracy_score(Y_test, y_pred)
+        print("f1: " + str(f1))
+        print("acc: " + str(accuracy))
+    else:
+        create_csv_submission(test_ids, y_pred, "resultat2.csv")
     print("Finished")
     return 0
 

@@ -427,6 +427,9 @@ def create_train_test_split(X, y, test_size=0.30, random_state=42):
 
 
 x_train, x_test, y_train, y_test = create_train_test_split(x, y)
+y_train[y_train == 0] = -1
+y_test[y_test == 0] = -1
+
 
 print(x_train.shape)
 print(y_train.shape)
@@ -435,7 +438,7 @@ print(y_test.shape)
 print(">>> After resample: \n --------------------------------------")
 print(
     "ytrain -1: "
-    + str(np.count_nonzero(y_train == 0))
+    + str(np.count_nonzero(y_train == -1))
     + "   |  ytrain 1: "
     + str(np.count_nonzero(y_train == 1))
     + "\n-------------------------------------"
@@ -450,7 +453,7 @@ x_train, y_train = pipeline.fit_resample(x_train, y_train)
 print(">>> After resample: \n --------------------------------------")
 print(
     "ytrain -1: "
-    + str(np.count_nonzero(y_train == 0))
+    + str(np.count_nonzero(y_train == -1))
     + "   |  ytrain 1: "
     + str(np.count_nonzero(y_train == 1))
     + "\n-------------------------------------"

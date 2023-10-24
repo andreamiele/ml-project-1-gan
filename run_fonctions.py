@@ -18,8 +18,8 @@ def predict_labels(weights, data):
 # at the beginning of every functions. These parameters were find through #
 # optimization, but can be changed                                        #
 def run_gradient_descent(y, x):
-    max_iters = 300
-    gamma = 0.2
+    max_iters = 1000
+    gamma = 0.01
     y, tx = build_model_data(x, y)
     initial_w = np.zeros(tx.shape[1])
     gd_w, gd_loss = least_squares_GD(y, tx, initial_w, max_iters, gamma)
@@ -29,8 +29,8 @@ def run_gradient_descent(y, x):
 
 def run_stochastic_gradient_descent(y, x):
     y, tx = build_model_data(x, y)
-    max_iters = 100
-    gamma = 0.0001
+    max_iters = 1000
+    gamma = 0.01
     initial_w = np.zeros(tx.shape[1])
     sgd_w, sgd_loss = least_squares_SGD(y, tx, initial_w, max_iters, gamma)
 
@@ -38,7 +38,7 @@ def run_stochastic_gradient_descent(y, x):
 
 
 def run_least_square(y, x):
-    degree = 10
+    degree = 3
     tx = build_poly(x, degree)
     ls_w, ls_loss = least_squares(y, tx)
 
@@ -63,13 +63,10 @@ def run_logistic_regression(y, x, gamma=0.1, max_iters=100):
     return lr_w, lr_loss
 
 
-def run_reg_logistic_regression(y, x):
+def run_reg_logistic_regression(y, x, gamma=0.0004, lambda_=0.0001, max_iters=100):
     y, tx = build_model_data(x, y)
     initial_w = np.zeros((tx.shape[1], 1))
     y = np.expand_dims(y, axis=1)
-    gamma = 0.0004
-    lambda_ = 0.0001
-    max_iters = 100
     rlr_w, rlr_loss = reg_logistic_regression(
         y, tx, lambda_, initial_w, max_iters, gamma
     )
@@ -165,7 +162,7 @@ def gradient_descent_predict(w, row):
 
 
 def least_square_predict(w, row):
-    degree = 10
+    degree = 3
     x_row = np.delete(row, 0)
     x_row = np.transpose(x_row)
     augmented_row = build_poly_row(x_row, degree)

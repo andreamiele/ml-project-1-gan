@@ -99,7 +99,7 @@ The **selected features** from the BRFSS 2015 dataset are:
 
 ## 1. Get the data
 """
-'''
+
 # imports
 import os
 import pandas as pd
@@ -109,7 +109,7 @@ random.seed(1)
 
 # read in the dataset (select 2015)
 year = "2015"
-brfss_2015_dataset = pd.read_csv(f"dataset/x_test.csv")
+brfss_2015_dataset = pd.read_csv(f"2015.csv")
 # How many rows and columns
 brfss_2015_dataset.shape
 
@@ -122,7 +122,6 @@ brfss_2015_dataset.head()
 # select specific columns
 brfss_df_selected = brfss_2015_dataset[
     [
-        "Id",
         "_RFHYPE5",
         "TOLDHI2",
         "_CHOLCHK",
@@ -157,7 +156,7 @@ brfss_df_selected.head()
 """
 
 # Drop Missing Values - knocks 100,000 rows out right away
-brfss_df_selected = brfss_df_selected.fillna(brfss_df_selected.mean())
+brfss_df_selected = brfss_df_selected.dropna()
 print(brfss_df_selected.shape)
 
 """### 2.2 Modify and clean the values to be more suitable to ML algorithms
@@ -168,7 +167,7 @@ In order to do this part, I referenced the codebook which says what each column/
 # 1 _RFHYPE5
 # Change 1 to 0 so it represetnts No high blood pressure and 2 to 1 so it represents high blood pressure
 brfss_df_selected["_RFHYPE5"] = brfss_df_selected["_RFHYPE5"].replace({1: 0, 2: 1})
-# brfss_df_selected = brfss_df_selected[brfss_df_selected._RFHYPE5 != 9]
+brfss_df_selected = brfss_df_selected[brfss_df_selected._RFHYPE5 != 9]
 brfss_df_selected._RFHYPE5.unique()
 
 # 2 TOLDHI2
@@ -176,15 +175,15 @@ brfss_df_selected._RFHYPE5.unique()
 # Remove all 7 (dont knows)
 # Remove all 9 (refused)
 brfss_df_selected["TOLDHI2"] = brfss_df_selected["TOLDHI2"].replace({2: 0})
-# brfss_df_selected = brfss_df_selected[brfss_df_selected.TOLDHI2 != 7]
-# brfss_df_selected = brfss_df_selected[brfss_df_selected.TOLDHI2 != 9]
+brfss_df_selected = brfss_df_selected[brfss_df_selected.TOLDHI2 != 7]
+brfss_df_selected = brfss_df_selected[brfss_df_selected.TOLDHI2 != 9]
 brfss_df_selected.TOLDHI2.unique()
 
 # 3 _CHOLCHK
 # Change 3 to 0 and 2 to 0 for Not checked cholesterol in past 5 years
 # Remove 9
 brfss_df_selected["_CHOLCHK"] = brfss_df_selected["_CHOLCHK"].replace({3: 0, 2: 0})
-# brfss_df_selected = brfss_df_selected[brfss_df_selected._CHOLCHK != 9]
+brfss_df_selected = brfss_df_selected[brfss_df_selected._CHOLCHK != 9]
 brfss_df_selected._CHOLCHK.unique()
 
 # 4 _BMI5 (no changes, just note that these are BMI * 100. So for example a BMI of 4018 is really 40.18)
@@ -382,6 +381,8 @@ ya.to_csv("dataset/ya.csv", sep=",", index=False)"""
 brfss.to_csv("dataset/modified_xtest.csv", sep=",", index=False)
 # ************************************************************************************************
 
+
+
 '''
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
@@ -394,6 +395,10 @@ from sklearn.impute import SimpleImputer
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
+import xgboost as xgb
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.preprocessing import LabelEncoder
+
 
 y = np.genfromtxt("dataset/ya.csv", delimiter=",", skip_header=1, usecols=1)
 x_train = np.genfromtxt("dataset/modified_xtrain.csv", delimiter=",", skip_header=1)
@@ -414,8 +419,8 @@ print(
     + str(np.count_nonzero(y == 1))
     + "\n-------------------------------------\n"
 )
-over = SMOTE(sampling_strategy=0.2)
-under = RandomUnderSampler(sampling_strategy=0.4)
+over = SMOTE(sampling_strategy=0.15)
+under = RandomUnderSampler(sampling_strategy=0.5)
 steps = [("o", over), ("u", under)]
 pipeline = Pipeline(steps=steps)
 x, y = pipeline.fit_resample(x_train, y)
@@ -444,3 +449,44 @@ gb_classifier.fit(x, y)
 prediction = gb_classifier.predict(x_test)
 print("pred -1: " + str(np.count_nonzero(prediction == -1)))
 create_csv_submission(ids, prediction, "NNNy_predGBC.csv")  # F1:    | Acc:
+
+
+def tune_gradient_boosting_hyperparameters(x, y):
+    # Define the hyperparameters and their possible values
+    param_grid = {
+        "n_estimators": [100, 200, 300],
+        "learning_rate": [0.01, 0.1, 0.2],
+        "max_depth": [3, 4, 5],
+        "min_samples_split": [2, 3, 4],
+        "min_samples_leaf": [1, 2, 3],
+        "subsample": [0.8, 0.9, 1.0],
+        "max_features": ["sqrt", "log2", None],
+    }
+
+    # Create the Gradient Boosting Classifier
+    gbc = GradientBoostingClassifier(random_state=42)
+
+    # Perform a grid search with cross-validation
+    grid_search = RandomizedSearchCV(
+        gbc, param_grid, n_iter=50, cv=5, scoring="f1", n_jobs=-1, verbose=2
+    )
+
+    # Fit the model to the data
+    grid_search.fit(x, y)
+
+    # Print the best hyperparameters and the corresponding F1 score
+    print("Best Hyperparameters: ", grid_search.best_params_)
+    print("Best F1 Score: ", grid_search.best_score_)
+    # Best Hyperparameters:  {'subsample': 1.0, 'n_estimators': 100, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_features': None, 'max_depth': 4, 'learning_rate': 0.1}
+    return grid_search.best_estimator_
+
+
+le = LabelEncoder()
+y = le.fit_transform(y)
+xgb_classifier = xgb.XGBClassifier(n_estimators=200, learning_rate=0.01, max_depth=7)
+xgb_classifier.fit(x, y)
+predictions = xgb_classifier.predict(x_test)
+predictions[predictions == 0] = -1
+print("pred -1: " + str(np.count_nonzero(predictions == -1)))
+create_csv_submission(ids, predictions, "XGBpred.csv")
+'''
