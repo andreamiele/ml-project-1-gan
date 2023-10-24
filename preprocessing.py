@@ -18,7 +18,7 @@ def transforme(X, f):
 
 
 def preprocessing(
-    X_train, X_test, Y_train, Kselected, sampling_strat1=0.15, sampling_strat2=0.5
+    X_train, X_test, Y_train, Kselected, sampling_strat1=0.105, sampling_strat2=0.5
 ):
     imp = SimpleImputer()
     imp = imp.fit(X_train)
