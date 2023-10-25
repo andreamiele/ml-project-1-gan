@@ -9,6 +9,9 @@ We will procede in two steps :
 - Step 1 : simple grid search
 - Step 2 : local search, with a starting point given by step 1
 Step 2 is explain in depth just before its code
+
+
+IN THIS CODE, X_TEST IS THE 20% OF DATA WE KEEP FOR VALIDATION AND X_ASSESSMENT IS THE REAL TEST (SUBMISSION) DATA
 """
 
 
@@ -21,7 +24,7 @@ def create_train_test_split(X, y, test_size=0.20, random_state=42):
     )
     return X_train, X_test, y_train, y_test
 
-X, Y, _, _ = load_csv_data("dataset/")
+X, X_assessment, Y, _, ids = load_csv_data("dataset/")
 
 X_train, X_test, y_train, y_test = create_train_test_split(X, Y)
 
@@ -44,7 +47,7 @@ accuracies = np.zeros((len(lambdas), len(gammas)))
 for i, lambda_ in enumerate(lambdas):
     for j, gamma in enumerate(gammas):
         w_opti, _ = reg_logistic_regression(y_train, X_train, lambda_, w, gamma)
-        y_pred = predict(X_test, w)
+        y_pred = predict(X_test, w_opti)
         f_scores[i][j] = f1_score(y_test, y_pred)
         accuracies[i][j] = accuracy_score(y_test, y_pred)
 
@@ -113,7 +116,7 @@ for iter in range(max_jumps):
     for p in new_points:
         lambda_, gamma = p[0], p[1]
         w_opti, _ = reg_logistic_regression(y_train, X_train, lambda_, w, gamma)
-        y_pred = predict(X_test, w)
+        y_pred = predict(X_test, w_opti)
         f_scores.append(f1_score(y_test, y_pred))
 
     # if the f-score did not improve, refine by dividing the ratio
@@ -144,4 +147,9 @@ gamma = points[0][1]
     
 print(f"After local search, new best f-score : {best_f}, for lambda = {lambda_} and gamma = {gamma}")
 
+## SAVING PREDICITION FOR BEST RESULT #######################################################
 
+w_opti, _ = reg_logistic_regression(y_train, X_train, lambda_, w, gamma)
+y_pred = predict(X_assessment, w_opti)
+
+create_csv_submission(ids, y_pred, "rlr-tuned.py")
