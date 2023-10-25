@@ -71,9 +71,12 @@ At each iteration (maximum number of iterations : max_jumps) :
     - Calculate f_score for each of these new points and old points (less efficient but clearer)
     - If the best fscore is the same as the old one, multiply ratio by 2
     - Keep in points only nb_points (those with best f-scores) 
+    - Number of trainings : nb_points*max_jumps*9 (ici le 9 vient du fait que l'on optimise 2 paramètres : 3² = 9)
 """
 
-for iter in range(max_jumps):
+for iter in range(max_jumps): 
+    print(f"Local search, iteration {iter} :")
+    print(f"Best f-score : {best_f}, and ratio = {ratio}")
     pas_lambda = saut[0]/ratio
     pas_gamma = saut[1]/ratio
     delta_lambda = [pas_lambda, -pas_lambda, 0]
