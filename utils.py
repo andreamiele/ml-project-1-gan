@@ -2,17 +2,6 @@ import numpy as np
 from implementations import *
 from score import *
 
-
-def predict_labels(weights, x):
-    """Generates class predictions given weights, and a test data matrix"""
-    tx = np.c_[np.ones((x.shape[0], 1)), x]
-    y_pred = np.dot(tx, weights)
-    y_pred[np.where(y_pred <= 0.5)] = -1
-    y_pred[np.where(y_pred > 0.5)] = 1
-
-    return y_pred
-
-
 # Build the k_indices for the k_fold
 def build_k_indices(y, k_fold, seed):
     num_row = y.shape[0]
@@ -24,7 +13,7 @@ def build_k_indices(y, k_fold, seed):
 
 
 # Function to do one run of cross_validation
-def cross_validation_one(y, x, initial_w, k_indices, k, hp, method):
+def cross_validation_one(y, x, initial_w, k_indices, k, threshold, hp, method):
     # We retrieve the fold we consider as test
     x_test = x[k_indices[k], :]
     y_test = y[k_indices[k]]
@@ -41,30 +30,8 @@ def cross_validation_one(y, x, initial_w, k_indices, k, hp, method):
 
     # We train a model and return its loss
     w = method(y_train, x_train, initial_w, hp)
-    f1score = f1_score(y_test, predict_labels(w, x_test))
+    f1score = f1_score(y_test, predict(x_test, w, threshold=threshold))
     return f1score
-
-
-# Cross validation function
-def cross_validation(x, y, initial_w, method, k_fold, hyperparams):
-    seed = 12
-    k_fold = k_fold
-    k_indices = build_k_indices(y, k_fold, seed)
-
-    f1scores = []
-    for hp in hyperparams:
-        # we iterate over the hyperparameters to test
-        f1scores_temp = []
-        for k in range(k_fold):
-            # We compute the average accuracy in the k_fold for these hyperparameters
-            f1score = cross_validation_one(y, x, initial_w, k_indices, k, hp, method)
-            f1scores_temp.append(f1score)
-        f1scores.append(np.mean(f1scores_temp))
-    # We retrieve the hyperparameters minimizing the loss
-    best_hp = hyperparams[np.argmin(f1scores)]
-    best_f1 = f1scores[np.argmin(f1scores)]
-
-    return best_hp, best_f1
 
 
 def standardize(x):
@@ -90,7 +57,7 @@ def tx(x):
 
 
 def predict(x, w, threshold=None, proba=False):
-    tx = tx(x)
+    tx = x
     if proba:
         predictions = sigmoid(tx.dot(w))
     else:
