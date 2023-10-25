@@ -1,17 +1,10 @@
+# Import helper functions
 from helpers import *
-from utils import *
 from implementations import *
-import numpy as np
-import matplotlib.pyplot as plt
+from preprocessing import *
+from utils import *
 
-y_train = np.genfromtxt(
-    "y_train_processed.csv", delimiter=" ", skip_header=0, usecols=0
-)
-x_train = np.genfromtxt("x_train_processed.csv", delimiter=" ", skip_header=0)
-x_test = np.genfromtxt("x_test_processed.csv", delimiter=" ", skip_header=0)
-ids = np.genfromtxt("test_ids.csv", delimiter=",")
-
-
+"""
 def logreg_grad_sgd(y, tx, w):
     index = np.random.randint(0, y.shape[0] - 1)
     pred = sigmoid(tx[index].dot(w))
@@ -86,3 +79,45 @@ for a in pred:
         count += 1
 print(count, pred.shape[0])
 create_csv_submission(ids, pred, "submit.csv")
+"""
+
+_kbest = 150
+_sampling_strat1 = 0.105
+_sampling_strat2 = 0.5
+_degree = 3
+_lambda = 10e-2
+_threshold = 0.87
+
+
+def main(training=False):
+    x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
+    test_ids = test_ids.astype(dtype=int)
+
+    if training:
+        x_train, x_test, y_train, y_test = create_train_test_split(x_train, y_train)
+
+    x_train, x_test, yb_train = preprocessing(
+        x_train, x_test, y_train, _kbest, _sampling_strat1, _sampling_strat2
+    )
+
+    x_train2 = standardize(x_train)
+    x_test2 = standardize(x_test)
+
+    tx = build_poly(x_train2, degree=_degree)
+    tx_test = build_poly(x_test2, degree=_degree)
+    w, loss = ridge_regression(yb_train, tx, lambda_=_lambda)
+    y_pred = predict(tx_test, w, threshold=_threshold, proba=False)
+
+    if training:
+        f1 = f1_score(Y_test, y_pred)
+        accuracy = accuracy_score(Y_test, y_pred)
+        print("f1: " + str(f1))
+        print("acc: " + str(accuracy))
+    else:
+        create_csv_submission(test_ids, y_pred, "resultat.csv")
+    print("Finished")
+    return 0
+
+
+### Run main function
+main()
