@@ -3,7 +3,16 @@ from utils import *
 from helpers import *
 from score import *
 
+"""
+In this script, we will optimize the parameters for regularized logistic regression.
+We will procede in two steps :
+- Step 1 : simple grid search
+- Step 2 : local search, with a starting point given by step 1
+Step 2 is explain in depth just before its code
+"""
 
+
+## PREPARATION ########################################################################
 # Loading the datas and splitting them
 
 def create_train_test_split(X, y, test_size=0.20, random_state=42):
@@ -18,6 +27,8 @@ X_train, X_test, y_train, y_test = create_train_test_split(X, Y)
 
 X_train, X_test, y_train = preprocessing(X_train, X_test, y_train)
 
+## GRID SEARCH ########################################################################
+
 # Defining the test parameters
 
 lambdas = [i/100 for i in range(1, 101, 10)]
@@ -27,6 +38,8 @@ w = np.ones(np.shape(X_train)[1])
 
 f_scores = np.zeros((len(lambdas), len(gammas)))
 accuracies = np.zeros((len(lambdas), len(gammas)))
+
+#Simple grid-search optimisation
 
 for i, lambda_ in enumerate(lambdas):
     for j, gamma in enumerate(gammas):
@@ -53,15 +66,10 @@ print(f"In this case, this accuracy is {accuracy_f}")
 print(f"If accuracy is your goal : best possible accuracy is {accuracy_a} with lambda = {lambda_a} and gamma = {gamma_a}.")
 print(f"In this case, the f-score is {f_score_a}")
 
+
+## LOCAL SEARCH ###################################################################
 # Improve this fine-tuning with kangaroo-search
 # Now we will only try to maximize f-score
-
-points = [[lambda_f, gamma_f]]
-saut = [0.1, 0.1]
-ratio = 1
-max_jumps = 10
-nb_points = 2
-best_f = f_score_f
 
 """
 The idea is to search randomly around the position of grid search optimum.
@@ -74,19 +82,33 @@ At each iteration (maximum number of iterations : max_jumps) :
     - Number of trainings : nb_points*max_jumps*9 (ici le 9 vient du fait que l'on optimise 2 paramètres : 3² = 9)
 """
 
+points = [[lambda_f, gamma_f]]
+saut = [0.1, 0.1]
+ratio = 1
+max_jumps = 10
+nb_points = 2
+best_f = f_score_f
+
+
 for iter in range(max_jumps): 
     print(f"Local search, iteration {iter} :")
     print(f"Best f-score : {best_f}, and ratio = {ratio}")
+
+    # Create all deltas to make new points
     pas_lambda = saut[0]/ratio
     pas_gamma = saut[1]/ratio
     delta_lambda = [pas_lambda, -pas_lambda, 0]
     delta_gamma = [pas_gamma, -pas_gamma, 0]
+
+    # Create new points
     new_points = []
     for p in points:
         new_points.append(p)
         for g in delta_gamma:
             for l in delta_lambda:
                 new_points.append([p[0] + l, p[1] + g])
+    
+    # Compute f_scores for every point
     f_scores = []
     for p in new_points:
         lambda_, gamma = p[0], p[1]
@@ -94,13 +116,14 @@ for iter in range(max_jumps):
         y_pred = predict(X_test, w)
         f_scores.append(f1_score(y_test, y_pred))
 
-    points = []
-
+    # if the f-score did not improve, refine by dividing the ratio
     if best_f==max(f_scores):
         ratio = ratio/2
-
+    
     best_f = max(f_scores)
 
+    # keep only the np_points best points
+    points = []
     index = f_scores.index(best_f)
     points.append(new_points[index])
 
@@ -114,6 +137,7 @@ for iter in range(max_jumps):
         new_points.pop(index)
         f_scores.pop(index)
 
+# Because of the way we pop/append, points is ordered by decresing f-score
 lambda_ = points[0][0]
 gamma = points[0][1]
 
