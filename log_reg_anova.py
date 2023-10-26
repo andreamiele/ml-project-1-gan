@@ -2,8 +2,8 @@ import numpy as np
 from imp import *
 from helpers import *
 import matplotlib.pyplot as plt
-from run_fonctions import *
-from validation import *
+#from run_fonctions import *
+#from validation import *
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectKBest, f_classif
@@ -99,7 +99,7 @@ def main():
     x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
     test_ids = test_ids.astype(dtype=int)
     # X_train, X_test, Y_train, Y_test = create_train_test_split(x_train, y_train)
-    x_train, x_test, yb_train = preprocessing(x_train, x_test, y_train, 150)
+    x_train, x_test, yb_train = preprocessing(x_train, x_test, y_train, 200)
     ###################### FEATURE PROCESSING ##################
     print("Feature processing")
 
@@ -107,8 +107,8 @@ def main():
     # input_data_train, input_data_test = removecols(input_data_train, input_data_test, [14,15,17,18,24,25,27,28])
 
     # Standardize and sentralize data
-    x_train2 = standardize(x_train)
-    x_test2 = standardize(x_test)
+    x_train2 = x_train
+    x_test2 = x_test
 
     # Build model test data
     # y_test, tx_test = build_model_data(x_test,yb_test)

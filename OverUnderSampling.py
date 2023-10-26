@@ -142,9 +142,6 @@ class RandomUnderSampler:
         return X_resampled, y_resampled
 
 
-import numpy as np
-
-
 class RandomOverSampler:
     def __init__(self, sampling_strategy=1.0, random_state=None):
         """
