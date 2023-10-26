@@ -1,6 +1,6 @@
 import numpy as np
 from implementations import *
-
+from score import *
 
 # Build the k_indices for the k_fold
 def build_k_indices(y, k_fold, seed):
@@ -13,7 +13,7 @@ def build_k_indices(y, k_fold, seed):
 
 
 # Function to do one run of cross_validation
-def cross_validation_one(y, x, initial_w, k_indices, k, hp, method, loss):
+def cross_validation_one(y, x, initial_w, k_indices, k, threshold, hp, method):
     # We retrieve the fold we consider as test
     x_test = x[k_indices[k], :]
     y_test = y[k_indices[k]]
@@ -30,8 +30,10 @@ def cross_validation_one(y, x, initial_w, k_indices, k, hp, method, loss):
 
     # We train a model and return its loss
     w = method(y_train, x_train, initial_w, hp)
-    loss_te = loss(y_test, x_test, w)
-    return loss_te
+    f1score = f1_score(
+        y_test, predict(x_test, w, threshold=threshold, proba=False, poly=False)
+    )
+    return f1score
 
 
 # Cross validation function
@@ -119,12 +121,15 @@ def build_poly(x, degree):
     return ret
 
 
-def tx(x):
+def ftx(x):
     return np.c_[np.ones((x.shape[0], 1)), x]
 
 
-def predict(x, w, threshold=None, proba=False):
-    tx = tx(x)
+def predict(x, w, threshold=None, proba=False, poly=False):
+    if poly:
+        tx = x
+    else:
+        tx = ftx(x)
     if proba:
         predictions = sigmoid(tx.dot(w))
     else:
@@ -138,5 +143,23 @@ def predict(x, w, threshold=None, proba=False):
 
 def build_model_data(x, y):
     # Form (y,tX) to get regression data in matrix form.      #
-    tx = tx(x)
+    tx = ftx(x)
     return y, tx
+    return y, tx
+
+
+def split_data(y, x, ratio, seed=10):
+    # Splitting data into train and test set, with (share =   #
+    # ratio) of the data in the training set                  #
+    np.random.seed(seed)
+    N = len(y)
+
+    index = np.random.permutation(N)
+    index_tr = index[: int(np.floor(N * ratio))]
+    index_te = index[int(np.floor(N * ratio)) :]
+    x_tr = x[index_tr]
+    x_te = x[index_te]
+    y_tr = y[index_tr]
+    y_te = y[index_te]
+
+    return x_tr, x_te, y_tr, y_te
