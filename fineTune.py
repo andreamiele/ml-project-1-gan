@@ -45,12 +45,7 @@ for f in features:
   k_indices = build_k_indices(y_t, 4, 12)
   for degree in degrees:
     x_tr = build_poly(x_t, degree)
-    perm = np.random.permutation(x_train.shape[0])
-    separation = int(np.floor(4*perm.shape[0]/5))
-    x_verif = x_tr[perm[separation:],:]
-    y_verif = y_train[perm[separation:]]
-    x_tr = x_tr[perm[:separation],:]
-    y_tr = y_train[perm[:separation]]
+    x_tr, x_verif, y_tr, y_verif = split_data(y_train, x_tr, 0.75)
     w_init = np.ones(x_tr.shape[1])
     for max_iter in max_iters:
       for gamma in gammas:
