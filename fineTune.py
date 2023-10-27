@@ -4,9 +4,6 @@ from utils import *
 from helpers import *
 from score import *
 
-def mean_squared_error_gd_CV(y, tx, w, hps):
-  return mean_squared_error_gd(y, tx, w, hps[0], hps[1])[0]
-
 def partialPreprocessing(X_train, X_test, Y_train, sampling_strat1=0.105, sampling_strat2=0.5):
     imp = SimpleImputer()
     imp = imp.fit(X_train)
@@ -32,17 +29,15 @@ x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
 test_ids = test_ids.astype(dtype=int)
 x_train, y_train, x_test = partialPreprocessing(x_train, x_test, y_train)
 
-
-
 fscores = np.loadtxt("f_scores_after_strat105_500.csv")
 
-gammas = np.logspace(-10, -3, 20)
-max_iters = np.array([100,250,500,750,1000])
-features = np.arange(20, 160, 10)
-degrees = np.array([2,3,4])
-thresholds = np.arange(0.1, 1, 0.1)
-hps = []
-losses = []
+gammas = np.logspace(-4,0,15)
+max_iters = np.array([100,250,400])
+features = np.arange(40, 60, 5)
+degrees = np.array([1,2,3])
+thresholds = np.arange(0.5, 0.90, 0.1)
+bf1 = 0
+bhps = []
 
 for f in features:
   x_t = kbest(x_train, f, fscores)
@@ -50,26 +45,38 @@ for f in features:
   k_indices = build_k_indices(y_t, 4, 12)
   for degree in degrees:
     x_tr = build_poly(x_t, degree)
-    w_init = np.ones(x_train.shape[1])
+    perm = np.random.permutation(x_train.shape[0])
+    separation = int(np.floor(4*perm.shape[0]/5))
+    x_verif = x_tr[perm[separation:],:]
+    y_verif = y_train[perm[separation:]]
+    x_tr = x_tr[perm[:separation],:]
+    y_tr = y_train[perm[:separation]]
+    w_init = np.ones(x_tr.shape[1])
     for max_iter in max_iters:
       for gamma in gammas:
         for threshold in thresholds:
-          print([f,degree,max_iter,gamma])
-          hps.append([f,degree,max_iter,gamma])
-          loss_te_temp = []
-          for k in range(4):
-            loss_te = cross_validation_one(y_train, x_tr, 0, k_indices, k, threshold, [max_iter, gamma], mean_squared_error_gd_CV)
-            loss_te_temp.append(loss_te)
-          losses.append(np.mean(loss_te_temp))
+          print([f,degree,max_iter,gamma, threshold])
+          w,_ = mean_squared_error_gd(y_tr, x_tr, w_init, max_iter, gamma)
+          f1score = f1_score(y_verif, predict(x_verif, w, threshold=threshold))
+          if bf1 < f1score:
+            print(f1score)
+            bf1 = f1score
+            bhps = [f,degree,max_iter,gamma, threshold]
+          
+          #loss_te_temp = []
+          #for k in range(4):
+          #  loss_te = cross_validation_one(y_train, x_tr, w_init, k_indices, k, threshold, [max_iter, gamma], mean_squared_error_gd_CV)
+          #  loss_te_temp.append(loss_te)
+          #losses.append(np.mean(loss_te_temp))
+          
+print("hyperparameters ([nb of feature, degree of poly, max_iter, gamma, threshold]):", bhps)
 
-bhps = hps[np.argmax(losses)]
-print("hyperparameters ([nb of feature, degree of poly, max_iter, gamma]):", bhps)
-
+#bhps = [50, 1, 100, 0.1, 0.6]
 x_train = kbest(x_train, bhps[0], fscores)
 x_test = kbest(x_test, bhps[0], fscores)
 x_train = build_poly(x_train, bhps[1])
 x_test = build_poly(x_test, bhps[1])
 w_init = np.ones(x_train.shape[1])
-w,_ = mean_squared_error_gd(y_train, x_train, w_init, bhps[3], bhps[4])
-y_pred = predict(w, x_test, 0.5)
-create_csv_submission(test_ids, y_pred, "ridge_fine_tuned.csv")
+w,_ = mean_squared_error_gd(y_train, x_train, w_init, bhps[2], bhps[3])
+y_pred = predict(x_test, w, bhps[4])
+create_csv_submission(test_ids, y_pred, "gd_fine_tuned.csv")
