@@ -17,61 +17,70 @@ def partialPreprocessing(X_train, X_test, Y_train, sampling_strat1=0.105, sampli
     X_balanced, Y_balanced = ros.fit_generate(X_t, Y_train)
     rus = RandomUnderSampler(sampling_strategy=sampling_strat2)
     X_t, Y_t = rus.fit_resample(X_balanced, Y_balanced)
-    X_t = standardize(X_t)
-    X_t2 = standardize(X_t2)
     return X_t, Y_t, X_t2
 
 def kbest(x_train, k, fscores):
   idx = np.argpartition(fscores, k)
   return x_train[:,idx[:k]]
 
+
+max_iters = [500,750,1000]
+learn_rate = [1e-6,1e-5,1e-4,1e-3,1e-2]  # Learning Rates
+d_ = [1,2]  # Max Rates
+k_ = np.arange(30,100,20)  # K for Select k best
+r_ = [0.0001 * i for i in range(8500, 9000, 1)]  # Threshold in quantile
+print(r_)
+
 x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
-test_ids = test_ids.astype(dtype=int)
-x_train, y_train, x_test = partialPreprocessing(x_train, x_test, y_train)
-
 fscores = np.loadtxt("f_scores_after_strat105_500.csv")
+test_ids = test_ids.astype(dtype=int)
+f1_ = 0
+params = [0, 0, 0, 0, 0, 0]
+x_train, x_test, y_train, y_test = split_data(y_train, x_train, 0.75)
 
-gammas = np.logspace(-4,0,15)
-max_iters = np.array([100,250,400])
-features = np.arange(40, 60, 5)
-degrees = np.array([1,2,3])
-thresholds = np.arange(0.5, 0.90, 0.1)
-bf1 = 0
-bhps = []
-
-for f in features:
-  x_t = kbest(x_train, f, fscores)
-  y_t = y_train
-  k_indices = build_k_indices(y_t, 4, 12)
-  for degree in degrees:
-    x_tr = build_poly(x_t, degree)
-    x_tr, x_verif, y_tr, y_verif = split_data(y_train, x_tr, 0.75)
-    w_init = np.ones(x_tr.shape[1])
-    for max_iter in max_iters:
-      for gamma in gammas:
-        for threshold in thresholds:
-          print([f,degree,max_iter,gamma, threshold])
-          w,_ = mean_squared_error_gd(y_tr, x_tr, w_init, max_iter, gamma)
-          f1score = f1_score(y_verif, predict(x_verif, w, threshold=threshold))
-          if bf1 < f1score:
-            print(f1score)
-            bf1 = f1score
-            bhps = [f,degree,max_iter,gamma, threshold]
-          
-          #loss_te_temp = []
-          #for k in range(4):
-          #  loss_te = cross_validation_one(y_train, x_tr, w_init, k_indices, k, threshold, [max_iter, gamma], mean_squared_error_gd_CV)
-          #  loss_te_temp.append(loss_te)
-          #losses.append(np.mean(loss_te_temp))
-          
-print("hyperparameters ([nb of feature, degree of poly, max_iter, gamma, threshold]):", bhps)
-
-#bhps = [50, 1, 100, 0.1, 0.6]
-x_train = kbest(x_train, bhps[0], fscores)
-x_test = kbest(x_test, bhps[0], fscores)
-x_train = build_poly(x_train, bhps[1])
-x_test = build_poly(x_test, bhps[1])
-w_init = np.ones(x_train.shape[1])
-w,_ = mean_squared_error_gd(y_train, x_train, w_init, bhps[2], bhps[3])
-y_pred = predict(x_test, w, bhps[4])
+for k in k_:
+  x_train2, yb_train2, x_test2 = partialPreprocessing(
+    x_train, x_test, y_train
+  )
+  x_train2 = kbest(x_train2, k, fscores)
+  x_test2 = kbest(x_test2, k, fscores)
+  x_train2 = standardize(x_train2)
+  x_test2 = standardize(x_test2)
+  
+  for d in d_:
+    tx = build_poly(x_train2, degree=d)
+    tx_test = build_poly(x_test2, degree=d)
+    initial_w = np.ones(tx.shape[1])
+    for mi in max_iters:
+      for l in learn_rate:
+        w, _ = mean_squared_error_gd(yb_train2, tx, initial_w, mi, l)
+        for r in r_:
+          y_pred = predict(
+            tx_test, w, threshold=r, proba=False, poly=True
+          )
+          f1 = f1_score(y_test, y_pred)
+          if f1 > f1_:
+            f1_ = f1
+            params = [k, d, mi, l, r]
+            print(params, f1)
+  
+print(params)           
+x_train2, yb_train2, x_test2 = partialPreprocessing(
+  x_train, x_test, y_train
+)
+k = params[0]
+mi = params[2]
+gamma = params[3]
+r = params[4]
+x_train2 = kbest(x_train2, k, fscores)
+x_test2 = kbest(x_test2, k, fscores)
+x_train2 = standardize(x_train2)
+x_test2 = standardize(x_test2)
+yb_train2, tx = build_model_data(x_train2, yb_train2)
+initial_w = np.zeros(tx.shape[1])
+w, loss = mean_squared_error_gd(yb_train2, tx, initial_w, mi, gamma)
+y_pred = predict(x_test2, w, threshold=r, proba=False, poly=False)
 create_csv_submission(test_ids, y_pred, "gd_fine_tuned.csv")
+
+
+main(True)
