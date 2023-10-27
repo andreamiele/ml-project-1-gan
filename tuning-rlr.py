@@ -18,24 +18,36 @@ IN THIS CODE, X_TEST IS THE 20% OF DATA WE KEEP FOR VALIDATION AND X_ASSESSMENT 
 ## PREPARATION ########################################################################
 # Loading the datas and splitting them
 
-def create_train_test_split(X, y, test_size=0.20, random_state=42):
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state
-    )
-    return X_train, X_test, y_train, y_test
+k = 150
+max_iter = 1000
 
+print("Loading dataset")
 X, X_assessment, Y, _, ids = load_csv_data("dataset/")
 
-X_train, X_test, y_train, y_test = create_train_test_split(X, Y)
+print("Spliting dataset")
+X_train, X_test, y_train, y_test = split_data(Y, X, 0.8)
 
-X_train, X_test, y_train = preprocessing(X_train, X_test, y_train)
+
+print("Preprocessing dataset")
+X_train, X_test, y_train = preprocessing(X_train, X_test, y_train, k)
+
+X_train = standardize(X_train)
+X_test = standardize(X_test)
+
+## USING K-FOLD
+
+
 
 ## GRID SEARCH ########################################################################
 
 # Defining the test parameters
 
-lambdas = [i/100 for i in range(1, 101, 10)]
-gammas = [0.001, 0.01, 0.1, 0.2, 0.3, 0.5, 1]
+lambdas = np.logspace(-4, 0, num=12)
+gammas = np.logspace(-4, -1, num=12)
+
+
+
+print(lambdas, gammas)
 
 w = np.ones(np.shape(X_train)[1])
 
@@ -43,22 +55,26 @@ f_scores = np.zeros((len(lambdas), len(gammas)))
 accuracies = np.zeros((len(lambdas), len(gammas)))
 
 #Simple grid-search optimisation
+print("Simple grid-search optimisation")
 
 for i, lambda_ in enumerate(lambdas):
     for j, gamma in enumerate(gammas):
-        w_opti, _ = reg_logistic_regression(y_train, X_train, lambda_, w, gamma)
-        y_pred = predict(X_test, w_opti)
-        f_scores[i][j] = f1_score(y_test, y_pred)
+        w_opti, _ = reg_logistic_regression(y_train, X_train, lambda_, w, max_iter, gamma)
+        y_pred = predict(X_test, w_opti, proba=True)
+        f = f1_score(y_test, y_pred)
+        f_scores[i][j] = f
         accuracies[i][j] = accuracy_score(y_test, y_pred)
+        print(f"lambda : {i+1}/{len(lambdas)}, gamma : {j+1}/{len(gammas)}, f-score = {f}")
 
 # Choosing best lambda, gamma
-
-i_f, j_f = np.argmax(f_scores)
+arg_f = np.argmax(f_scores)
+i_f, j_f = arg_f//len(gammas), arg_f%len(gammas)
 lambda_f, gamma_f = lambdas[i_f], gammas[j_f]
 accuracy_f = accuracies[i_f][j_f]
 f_score_f = f_scores[i_f][j_f]
 
-i_a, j_a = np.argmax(accuracies)
+arg_a = np.argmax(accuracies)
+i_a, j_a = arg_a//len(gammas), arg_a%len(gammas)
 lambda_a, gamma_a = lambdas[i_a], gammas[j_a]
 accuracy_a = accuracies[i_a][j_a]
 f_score_a = f_scores[i_a][j_a]
@@ -85,12 +101,15 @@ At each iteration (maximum number of iterations : max_jumps) :
     - Number of trainings : nb_points*max_jumps*9 (ici le 9 vient du fait que l'on optimise 2 paramètres : 3² = 9)
 """
 
+print("Entering local-search fine-tuning")
+
 points = [[lambda_f, gamma_f]]
-saut = [0.1, 0.1]
+saut = [lambda_f/2, gamma_f/2]
 ratio = 1
-max_jumps = 10
+max_jumps = 8
 nb_points = 2
 best_f = f_score_f
+
 
 
 for iter in range(max_jumps): 
@@ -115,8 +134,8 @@ for iter in range(max_jumps):
     f_scores = []
     for p in new_points:
         lambda_, gamma = p[0], p[1]
-        w_opti, _ = reg_logistic_regression(y_train, X_train, lambda_, w, gamma)
-        y_pred = predict(X_test, w_opti)
+        w_opti, _ = reg_logistic_regression(y_train, X_train, lambda_, w, max_iter, gamma, )
+        y_pred = predict(X_test, w_opti,proba=True)
         f_scores.append(f1_score(y_test, y_pred))
 
     # if the f-score did not improve, refine by dividing the ratio
@@ -149,7 +168,13 @@ print(f"After local search, new best f-score : {best_f}, for lambda = {lambda_} 
 
 ## SAVING PREDICITION FOR BEST RESULT #######################################################
 
-w_opti, _ = reg_logistic_regression(y_train, X_train, lambda_, w, gamma)
-y_pred = predict(X_assessment, w_opti)
+fscores = np.loadtxt("f_scores_after_strat105_500.csv")
+idx = np.argpartition(fscores, k)
+X_assessment = X_assessment[:,idx[:k]]
+X_assessment = standardize(X_assessment)
 
-create_csv_submission(ids, y_pred, "rlr-tuned.py")
+w_opti, _ = reg_logistic_regression(y_train, X_train, lambda_, w, max_iter, gamma)
+y_pred = predict(X_assessment, w_opti, proba = True)
+
+create_csv_submission(ids, y_pred, "rlr-tuned.csv")
+
