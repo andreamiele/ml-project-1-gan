@@ -29,7 +29,7 @@ def f1_score(y_true, y_pred):
     false_negatives = np.sum((y_true == 1) & (y_pred == -1))
 
     # Calculate precision and recall
-    if true_positives + false_negatives == 0:
+    if true_positives + false_positives == 0:
         print("WARNING : prediction of [-1 ... -1]")
         return 0
     precision = true_positives / (true_positives + false_positives)
