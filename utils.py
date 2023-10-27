@@ -30,7 +30,6 @@ def cross_validation_one(y, x, initial_w, k_indices, k, threshold, hp, method):
 
     # We train a model and return its loss
     w = method(y_train, x_train, initial_w, hp)
-<<<<<<< HEAD
     f1score = f1_score(
         y_test, predict(x_test, w, threshold=threshold, proba=False, poly=False)
     )
@@ -102,10 +101,6 @@ def logreg_newton_gd(y, tx, w, max_iters, gamma):
 
 
 import numpy as np
-=======
-    f1score = f1_score(y_test, predict(x_test, w, threshold=threshold))
-    return f1score
->>>>>>> 3cd216102a244422e36c04458553b19040e1e586
 
 
 def standardize(x):
@@ -130,16 +125,11 @@ def ftx(x):
     return np.c_[np.ones((x.shape[0], 1)), x]
 
 
-<<<<<<< HEAD
 def predict(x, w, threshold=None, proba=False, poly=False):
     if poly:
         tx = x
     else:
         tx = ftx(x)
-=======
-def predict(x, w, threshold=None, proba=False):
-    tx = x
->>>>>>> 3cd216102a244422e36c04458553b19040e1e586
     if proba:
         predictions = sigmoid(tx.dot(w))
     else:
