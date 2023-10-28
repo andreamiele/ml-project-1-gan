@@ -28,12 +28,9 @@ ids = ids.astype(int)
 print("Preprocessing dataset")
 X, X_assessment, Y = preprocessing(X, X_assessment, Y, k)
 
-Y, tX = build_model_data(X, Y)
-
 print("Spliting dataset")
-X_train, X_test, y_train, y_test = split_data(Y, X, 0.6)
+X_train, X_test, y_train, y_test = split_data(Y, X, 0.8)
 
-y_train, tx_train = build_model_data(X_train, y_train)
 
 X_train = standardize(X_train)
 X_test = standardize(X_test)
@@ -46,6 +43,8 @@ X_assessment = standardize(X_assessment)
 
 lambdas = np.logspace(-5, 0, num=10)
 gammas = np.logspace(-4, 1, num=10)
+
+y_train, tx_train = build_model_data(X_train, y_train)
 
 w = np.zeros(np.shape(tx_train)[1])
 
@@ -62,7 +61,7 @@ for i, lambda_ in enumerate(lambdas):
         f = f1_score(y_test, y_pred)
         f_scores[i][j] = f
         accuracies[i][j] = accuracy_score(y_test, y_pred)
-        print(f"lambda : {i+1}/{len(lambdas)} ({round(lambda_, 2)}), gamma : {j+1}/{len(gammas)} ({round(gamma, 2)}), f-score = {round(f, 2)}")
+        print(f"lambda : {i+1}/{len(lambdas)} ({lambda_}), gamma : {j+1}/{len(gammas)} ({gamma}), f-score = {f}")
 
 # Choosing best lambda, gamma
 arg_f = np.argmax(f_scores)
@@ -83,7 +82,7 @@ print(f"In this case, this accuracy is {accuracy_f}")
 print(f"If accuracy is your goal : best possible accuracy is {accuracy_a} with lambda = {lambda_a} and gamma = {gamma_a}.")
 print(f"In this case, the f-score is {f_score_a}")
 
-w_opti, _ = reg_logistic_regression(Y, tX, lambda_f, w, max_iter, gamma_f)
+w_opti, _ = reg_logistic_regression(y_train, tx_train, lambda_f, w, max_iter, gamma_f)
 y_pred = predict(X_assessment, w_opti, proba = True)
 
 create_csv_submission(ids, y_pred, "rlr-tuned_grid.csv")
@@ -171,7 +170,7 @@ print(f"After local search, new best f-score : {best_f}, for lambda = {lambda_} 
 
 ## SAVING PREDICITION FOR BEST RESULT #######################################################
 
-w_opti, _ = reg_logistic_regression(Y, tX, lambda_, w, max_iter, gamma)
+w_opti, _ = reg_logistic_regression(y_train, tx_train, lambda_, w, max_iter, gamma)
 y_pred = predict(X_assessment, w_opti, proba = True)
 
 create_csv_submission(ids, y_pred, "rlr-tuned-local.csv")
