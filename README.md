@@ -4,24 +4,15 @@
 
 **Team GAN** - Gabriel Dehame, Andrea Miele, Nicolas Moyne
 
-# Introduction
+# Repository organization
+-  `helpers.py` is the provided file to load the dataset and create submissions
+- `implementations.py` implements the ML methods of Step 2
+- `score.py` implements functions to calculate the quality of a model (`f1_score`, `accuracy`)
+- `preprocessing.py` implements our preprocessing which removes useless features, computes through an ANOVA (Analysis of Variance)
+the most impactful features and thus those to keep in priority. The ANOVA is implemented in `anova_selection.py`. It also performs an oversampling and undersampling to cope with the
+unbalanced dataset, these are implemented in `OverUnderSampling.py`.
+- `utils.py` implements utilitary methods train models such as `build_poly` computing polynomial extensions, `standardize` standardizing data or `predict` computing the prediction for a given model and given datapoints
+- `run.py` reproduces the training of the best performing model we've trained. For it to work, the dataset must be installed in a folder `dataset/`
 
-oui
-
-# Methods
-
-## Data
-
-## Methodology and challenges
-
-## Models
-
-# Conclusion
-
-# Extra-information
-
-## How to Use
-
-# References
-
-## Literature Review
+# Best submission
+The best submission on AICrowd is submission #240074, which is reproduced in `run.py`

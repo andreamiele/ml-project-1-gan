@@ -19,37 +19,34 @@ IN THIS CODE, X_TEST IS THE 20% OF DATA WE KEEP FOR VALIDATION AND X_ASSESSMENT 
 # Loading the datas and splitting them
 
 k = 150
-max_iter = 1000
+max_iter = 100
 
 print("Loading dataset")
 X, X_assessment, Y, _, ids = load_csv_data("dataset/")
+ids = ids.astype(int)
+
+print("Preprocessing dataset")
+X, X_assessment, Y = preprocessing(X, X_assessment, Y, k)
 
 print("Spliting dataset")
 X_train, X_test, y_train, y_test = split_data(Y, X, 0.8)
 
 
-print("Preprocessing dataset")
-X_train, X_test, y_train = preprocessing(X_train, X_test, y_train, k)
-
 X_train = standardize(X_train)
 X_test = standardize(X_test)
-
-## USING K-FOLD
-
+X_assessment = standardize(X_assessment)
 
 
 ## GRID SEARCH ########################################################################
 
 # Defining the test parameters
 
-lambdas = np.logspace(-4, 0, num=12)
-gammas = np.logspace(-4, -1, num=12)
+lambdas = np.logspace(-5, 0, num=10)
+gammas = np.logspace(-4, 1, num=10)
 
+y_train, tx_train = build_model_data(X_train, y_train)
 
-
-print(lambdas, gammas)
-
-w = np.ones(np.shape(X_train)[1])
+w = np.zeros(np.shape(tx_train)[1])
 
 f_scores = np.zeros((len(lambdas), len(gammas)))
 accuracies = np.zeros((len(lambdas), len(gammas)))
@@ -59,12 +56,12 @@ print("Simple grid-search optimisation")
 
 for i, lambda_ in enumerate(lambdas):
     for j, gamma in enumerate(gammas):
-        w_opti, _ = reg_logistic_regression(y_train, X_train, lambda_, w, max_iter, gamma)
+        w_opti, _ = reg_logistic_regression(y_train, tx_train, lambda_, w, max_iter, gamma)
         y_pred = predict(X_test, w_opti, proba=True)
         f = f1_score(y_test, y_pred)
         f_scores[i][j] = f
         accuracies[i][j] = accuracy_score(y_test, y_pred)
-        print(f"lambda : {i+1}/{len(lambdas)}, gamma : {j+1}/{len(gammas)}, f-score = {f}")
+        print(f"lambda : {i+1}/{len(lambdas)} ({lambda_}), gamma : {j+1}/{len(gammas)} ({gamma}), f-score = {f}")
 
 # Choosing best lambda, gamma
 arg_f = np.argmax(f_scores)
@@ -84,6 +81,11 @@ print(f"If f-score is your goal : best possible f-score is {f_score_f} with lamb
 print(f"In this case, this accuracy is {accuracy_f}")
 print(f"If accuracy is your goal : best possible accuracy is {accuracy_a} with lambda = {lambda_a} and gamma = {gamma_a}.")
 print(f"In this case, the f-score is {f_score_a}")
+
+w_opti, _ = reg_logistic_regression(y_train, tx_train, lambda_f, w, max_iter, gamma_f)
+y_pred = predict(X_assessment, w_opti, proba = True)
+
+create_csv_submission(ids, y_pred, "rlr-tuned_grid.csv")
 
 
 ## LOCAL SEARCH ###################################################################
@@ -134,7 +136,7 @@ for iter in range(max_jumps):
     f_scores = []
     for p in new_points:
         lambda_, gamma = p[0], p[1]
-        w_opti, _ = reg_logistic_regression(y_train, X_train, lambda_, w, max_iter, gamma, )
+        w_opti, _ = reg_logistic_regression(y_train, tx_train, lambda_, w, max_iter, gamma, )
         y_pred = predict(X_test, w_opti,proba=True)
         f_scores.append(f1_score(y_test, y_pred))
 
@@ -168,13 +170,8 @@ print(f"After local search, new best f-score : {best_f}, for lambda = {lambda_} 
 
 ## SAVING PREDICITION FOR BEST RESULT #######################################################
 
-fscores = np.loadtxt("f_scores_after_strat105_500.csv")
-idx = np.argpartition(fscores, k)
-X_assessment = X_assessment[:,idx[:k]]
-X_assessment = standardize(X_assessment)
-
-w_opti, _ = reg_logistic_regression(y_train, X_train, lambda_, w, max_iter, gamma)
+w_opti, _ = reg_logistic_regression(y_train, tx_train, lambda_, w, max_iter, gamma)
 y_pred = predict(X_assessment, w_opti, proba = True)
 
-create_csv_submission(ids, y_pred, "rlr-tuned.csv")
+create_csv_submission(ids, y_pred, "rlr-tuned-local.csv")
 

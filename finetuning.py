@@ -58,8 +58,14 @@ def main(training=False):
                         tx_test = build_poly(x_test2, degree=d)
                         for l in learn_rate:
 
+<<<<<<< HEAD
                             w, loss = ridge_regression(yb_train2, tx, lambda_=l)
                             # w,loss = mean_squared_error_sgd(yb_train2, tx, initial_w, max_iters, gamma)
+=======
+                            w, loss = mean_squared_error_gd(yb_train2, tx, initial_w, mi, l)
+                            # w, loss = mean_squared_error_sgd(yb_train2, tx, initial_w, m, l)
+                            # y_pred = predict(x_test, w, threshold=None, proba=False)
+>>>>>>> 44877294604a769975b8da6e372e5ea04242c04c
 
                             if training:
                                 for r in r_:
