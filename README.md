@@ -12,6 +12,7 @@
 the most impactful features and thus those to keep in priority. The ANOVA is implemented in `anova_selection.py`. It also performs an oversampling and undersampling to cope with the
 unbalanced dataset, these are implemented in `OverUnderSampling.py`.
 - `utils.py` implements utilitary methods train models such as `build_poly` computing polynomial extensions, `standardize` standardizing data or `predict` computing the prediction for a given model and given datapoints
+It also contains a cross-validation, local search and KNN but we ended up not using them because it was too slow and/or lead to strange results so they might be bugged.
 - `run.py` reproduces the training of the best performing model we've trained. For it to work, the dataset must be installed in a folder `dataset/`
 
 # Best submission
