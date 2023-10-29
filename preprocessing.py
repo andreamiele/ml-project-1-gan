@@ -1,8 +1,6 @@
 import numpy as np
 from helpers import *
 from implementations import *
-#from run_fonctions import *
-#from validation import *
 from anova_selection import anova_f
 from OverUnderSampling import *
 
