@@ -17,4 +17,5 @@ It also contains a logistic regression with newton's method, cross-validation, l
 - `f_scores_after_strat105_500.csv` is a file containing the precomputed ANOVA scores for the features of the dataset to avoid recomputing it each time as it's slow
 
 # Best submission
-The best submission on AICrowd is submission #240074, which is reproduced in `run.py`
+The best submission on AICrowd is submission #243500, which is reproduced in `run.py`
+We also got a F1 of 0.437 in submission #240074 on AICrowd. Unfortunately, the algorithm was not seeded and is therefore difficult to reproduce.
