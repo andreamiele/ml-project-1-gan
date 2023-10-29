@@ -59,8 +59,7 @@ def main(training=False):
                         for l in learn_rate:
 
                             w, loss = ridge_regression(yb_train2, tx, lambda_=l)
-                            # w, loss = mean_squared_error_sgd(yb_train2, tx, initial_w, m, l)
-                            # y_pred = predict(x_test, w, threshold=None, proba=False)
+                            # w,loss = mean_squared_error_sgd(yb_train2, tx, initial_w, max_iters, gamma)
 
                             if training:
                                 for r in r_:
@@ -70,6 +69,7 @@ def main(training=False):
                                     y_pred = predict(
                                         tx_test, w, threshold=r, proba=False, poly=True
                                     )
+                                    # y_pred = predict(x_test, w, threshold=r, proba=False, poly=False)
                                     print(r)
                                     f1 = f1_score(y_test, y_pred)
                                     if f1 > f1_:
