@@ -81,10 +81,27 @@ def gradient_descent_finetuning():
                 params = [k, d, mi, l, r]
                 print(params, f1)
 
+    print("Best hyperparameters and associated F1 score: ", params, f1_)
     #params = [312, 1, 1200, 0.02500000000000001, 0.861] 
     #f1_ = 0.40205468457381344
     
-    print("Best hyperparameters and associated F1 score: ", params, f1_)
+    print(params, f1_)           
+    x_train2, yb_train2, x_test2 = partialPreprocessing(
+    x_train, x_test, y_train
+    )
+    k = params[0]
+    mi = params[2]
+    gamma = params[3]
+    r = params[4]
+    x_train2 = kbest(x_train2, k, fscores_k)
+    x_test2 = kbest(x_test2, k, fscores_k)
+    x_train2 = standardize(x_train2)
+    x_test2 = standardize(x_test2)
+    yb_train2, tx = build_model_data(x_train2, yb_train2)
+    initial_w = np.zeros(tx.shape[1])
+    w, loss = mean_squared_error_gd(yb_train2, tx, initial_w, mi, gamma)
+    y_pred = predict(x_test2, w, threshold=r, proba=False, poly=False)
+    create_csv_submission(test_ids, y_pred, "gd_fine_tuned.csv")
 
 def ridge_regression_finetuning():
     x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
@@ -132,9 +149,22 @@ def ridge_regression_finetuning():
                                     "------------------------\nmax f1: " + str(f1_)
                                 )
                                 print("max params: " + str(params))
+                                
     print("Finished")
     print(f1_)
     print(params)
+    
+    x_train2, x_test2, yb_train2 = preprocessing(
+        x_train, x_test, y_train, 35, _sampling_strat1, _sampling_strat2
+    )
+    x_train2 = standardize(x_train2)
+    x_test2 = standardize(x_test2)
+    yb_train2, tx = build_model_data(x_train2, yb_train2)
+    initial_w = np.zeros(tx.shape[1])
+    w, loss = mean_squared_error_sgd(yb_train2, tx, initial_w, 1000, 0.001)
+    y_pred = predict(x_test2, w, threshold=0.84, proba=False, poly=False)
+    create_csv_submission(test_ids, y_pred, "resultatSGD.csv")
+    print("Training done and exported")
     
 def regularized_logreg_finetuning():
     ## PREPARATION ########################################################################
@@ -218,3 +248,24 @@ def regularized_logreg_finetuning():
 
 
     print(f"End of grid optimisation : best parameters are k = {k_best}, max_iter = {max_iter_best}, lambda = {lambda_best} anf gamma = {gamma_best}")
+    
+    
+    
+    ## SAVING PREDICITION FOR BEST RESULT #######################################################
+
+    X_trk = kbest(X, k_best, fscores_k)
+    X_assessment = kbest(X_assessment, k_best, fscores_k)
+    X_assessment = standardize(X_assessment)
+
+    pol = True
+    if degre_best==1:
+        Y, tx_train = build_model_data(X_trk, Y)
+        pol = False
+    else:
+        tx_train = build_poly(X_trk, degre_best)
+        X_assessment = build_poly(X_assessment, degre_best)
+
+    w_opti, _ = reg_logistic_regression(y_train, tx_train, lambda_best, w, max_iter_best, gamma_best)
+    y_pred = predict(X_assessment, w_opti, proba = True, poly = pol, threshold=threshold_best)
+
+    create_csv_submission(ids, y_pred, "rlr-full-tuned.csv")
