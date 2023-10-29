@@ -24,11 +24,11 @@ def kbest(x_train, k, fscores):
   return x_train[:,idx[:k]]
 
 
-max_iters = [500,750,1000]
-learn_rate = [1e-6,1e-5,1e-4,1e-3,1e-2]  # Learning Rates
-d_ = [1,2]  # Max Rates
-k_ = np.arange(30,100,20)  # K for Select k best
-r_ = [0.0001 * i for i in range(8500, 9000, 1)]  # Threshold in quantile
+max_iters = [1000,1100,1200]
+learn_rate = np.arange(0.015, 0.026, 0.001) # Learning Rates
+d_ = [1]  # Max Rates
+k_ = np.arange(306,315,1)  # K for Select k best
+r_ = [0.001 * i for i in range(600,900)]  # Threshold in quantile
 print(r_)
 
 x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
@@ -36,6 +36,7 @@ fscores = np.loadtxt("f_scores_after_strat105_500.csv")
 test_ids = test_ids.astype(dtype=int)
 f1_ = 0
 params = [0, 0, 0, 0, 0, 0]
+"""
 x_train, x_test, y_train, y_test = split_data(y_train, x_train, 0.75)
 
 for k in k_:
@@ -63,8 +64,12 @@ for k in k_:
             f1_ = f1
             params = [k, d, mi, l, r]
             print(params, f1)
+"""
+#[118, 1, 1300, 0.017, 0.6950000000000001] 0.21927136533878108
+params = [312, 1, 1200, 0.02500000000000001, 0.861] 
+f1_ = 0.40205468457381344
   
-print(params)           
+print(params, f1_)           
 x_train2, yb_train2, x_test2 = partialPreprocessing(
   x_train, x_test, y_train
 )
@@ -81,6 +86,3 @@ initial_w = np.zeros(tx.shape[1])
 w, loss = mean_squared_error_gd(yb_train2, tx, initial_w, mi, gamma)
 y_pred = predict(x_test2, w, threshold=r, proba=False, poly=False)
 create_csv_submission(test_ids, y_pred, "gd_fine_tuned.csv")
-
-
-main(True)

@@ -13,3 +13,6 @@ the most impactful features and thus those to keep in priority. The ANOVA is imp
 unbalanced dataset, these are implemented in `OverUnderSampling.py`.
 - `utils.py` implements utilitary methods train models such as `build_poly` computing polynomial extensions, `standardize` standardizing data or `predict` computing the prediction for a given model and given datapoints
 - `run.py` reproduces the training of the best performing model we've trained. For it to work, the dataset must be installed in a folder `dataset/`
+
+# Best submission
+The best submission on AICrowd is submission #240074, which is reproduced in `run.py`
