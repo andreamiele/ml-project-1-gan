@@ -122,10 +122,12 @@ def build_poly(x, degree):
 
 
 def ftx(x):
+    """Prepare the feature matrix x for use in linear regression model."""
     return np.c_[np.ones((x.shape[0], 1)), x]
 
 
 def predict(x, w, threshold=None, proba=False, poly=False):
+    """Predict, depending if we are using a polynomial expansion or not and if we need a sigmoid or not."""
     if poly:
         tx = x
     else:
@@ -208,7 +210,9 @@ class SimpleImputer:
         return X_imputed
 
 
-def local_search_rlr(best_hyperparam, fscore, xtrain, ytrain, xtest, ytest, max_jumps, nb_points):
+def local_search_rlr(
+    best_hyperparam, fscore, xtrain, ytrain, xtest, ytest, max_jumps, nb_points
+):
     """
     Local search for lambda and gamma tuning.
     The idea is to search randomly around the position of grid search optimum.
@@ -217,7 +221,7 @@ def local_search_rlr(best_hyperparam, fscore, xtrain, ytrain, xtest, ytest, max_
         - Here, pas_lambda = saut[0]/ratio et pas_gamma = saut[1]/ratio
         - Calculate f_score for each of these new points and old points (less efficient but clearer)
         - If the best fscore is the same as the old one, multiply ratio by 2
-        - Keep in points only nb_points (those with best f-scores) 
+        - Keep in points only nb_points (those with best f-scores)
         - Number of trainings : nb_points*max_jumps*9 (ici le 9 vient du fait que l'on optimise 2 paramètres : 3² = 9)
 
     Args :
@@ -237,17 +241,15 @@ def local_search_rlr(best_hyperparam, fscore, xtrain, ytrain, xtest, ytest, max_
 
     lambda_best, gamma_best, max_iter = best_hyperparam
     points = [[lambda_best, gamma_best]]
-    saut = [lambda_best/2, gamma_best/2]
+    saut = [lambda_best / 2, gamma_best / 2]
     ratio = 1
 
-
-
-    for iter in range(max_jumps): 
+    for iter in range(max_jumps):
         print(f"Local search, iteration {iter+1} out of {max_jumps}")
 
         # Create all deltas to make new points
-        pas_lambda = saut[0]/ratio
-        pas_gamma = saut[1]/ratio
+        pas_lambda = saut[0] / ratio
+        pas_gamma = saut[1] / ratio
         delta_lambda = [pas_lambda, -pas_lambda, 0]
         delta_gamma = [pas_gamma, -pas_gamma, 0]
 
@@ -258,19 +260,26 @@ def local_search_rlr(best_hyperparam, fscore, xtrain, ytrain, xtest, ytest, max_
             for g in delta_gamma:
                 for l in delta_lambda:
                     new_points.append([max(0, p[0] + l), max(0, p[1] + g)])
-        
+
         # Compute f_scores for every point
         f_scores = []
         for p in new_points:
             lambda_, gamma = p[0], p[1]
-            w_opti, _ = reg_logistic_regression(ytrain, xtrain, lambda_, w, max_iter, gamma, )
-            y_pred = predict(xtest, w_opti,proba=True)
+            w_opti, _ = reg_logistic_regression(
+                ytrain,
+                xtrain,
+                lambda_,
+                w,
+                max_iter,
+                gamma,
+            )
+            y_pred = predict(xtest, w_opti, proba=True)
             f_scores.append(f1_score(ytest, y_pred))
 
         # if the f-score did not improve, refine by dividing the ratio
-        if best_f==max(f_scores):
-            ratio = ratio/2
-        
+        if best_f == max(f_scores):
+            ratio = ratio / 2
+
         best_f = max(f_scores)
 
         # keep only the np_points best points
@@ -292,7 +301,8 @@ def local_search_rlr(best_hyperparam, fscore, xtrain, ytrain, xtest, ytest, max_
     lambda_ = points[0][0]
     gamma = points[0][1]
 
-        
-    print(f"After local search, new best f-score : {best_f}, for lambda = {lambda_} and gamma = {gamma}")
+    print(
+        f"After local search, new best f-score : {best_f}, for lambda = {lambda_} and gamma = {gamma}"
+    )
 
     return [lambda_, gamma]

@@ -6,7 +6,7 @@ from utils import *
 
 _kbest = 153
 _degree = 3
-_lambda = 0.1
+_lambda = 10e-2
 _threshold = 0.8751
 
 
@@ -17,9 +17,7 @@ def main(training=False):
     if training:
         x_train, x_test, y_train, y_test = split_data(x_train, y_train)
 
-    x_train, x_test, yb_train = preprocessing(
-        x_train, x_test, y_train, _kbest
-    )
+    x_train, x_test, yb_train = preprocessing(x_train, x_test, y_train, _kbest)
 
     x_train2 = standardize(x_train)
     x_test2 = standardize(x_test)

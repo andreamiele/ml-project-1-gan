@@ -1,12 +1,15 @@
 import numpy as np
 from helpers import *
 from implementations import *
-from random import randint
+from utils import *
+from random import *
 
 ### Over and Under sampling
 
 
 class SMOTE(object):
+    """SMOTE METHOD"""
+
     def __init__(self, distance="euclidean", dims=512, k=5, sampling_strategy=1.0):
         super(SMOTE, self).__init__()
         self.newindex = 0
@@ -104,10 +107,41 @@ class SMOTE(object):
 
 class RandomUnderSampler:
     def __init__(self, sampling_strategy="auto", random_state=None):
+        """
+        Initialize the RandomUnderSampler.
+
+        Parameters:
+        sampling_strategy : float or str, optional (default="auto")
+            The desired ratio of the number of samples in the majority class over
+            the number of samples in the minority class after undersampling. For
+            example, if you want a 1:2 ratio, set sampling_strategy=0.5.
+            If "auto" is used, it will automatically determine the ratio.
+
+        random_state : int or None, optional (default=None)
+            Seed for random number generation to ensure reproducibility.
+        """
         self.sampling_strategy = sampling_strategy
         self.random_state = random_state
 
     def fit_resample(self, X, y):
+        """
+        Random undersample the majority class in the dataset to achieve a specific
+        sampling strategy (ratio).
+
+        Parameters:
+        X : numpy array or array-like
+            Feature matrix of shape (n_samples, n_features).
+
+        y : numpy array or array-like
+            Target labels of shape (n_samples,).
+
+        Returns:
+        X_resampled : numpy array
+            Undersampled feature matrix.
+
+        y_resampled : numpy array
+            Undersampled target labels.
+        """
         if self.random_state is not None:
             np.random.seed(self.random_state)
 
@@ -295,6 +329,7 @@ def anova_f(x, y, strat, k=20, use_autosave=True):
 
 ### Preprocessing
 
+
 def transform(X, f):
     l = []
     for i in range(len(f)):
@@ -329,9 +364,9 @@ def preprocessing(
         + str(np.count_nonzero(Y_train == 1))
         + "\n-------------------------------------\n"
     )
-    ros = RandomOverSampler(sampling_strategy=sampling_strat1)
+    ros = RandomOverSampler(sampling_strategy=sampling_strat1, random_state=1)
     X_balanced, Y_balanced = ros.fit_generate(X_t, Y_train)
-    rus = RandomUnderSampler(sampling_strategy=sampling_strat2)
+    rus = RandomUnderSampler(sampling_strategy=sampling_strat2, random_state=1)
     X_t, Y_t = rus.fit_resample(X_balanced, Y_balanced)
 
     print(">>> After resample: \n --------------------------------------")
