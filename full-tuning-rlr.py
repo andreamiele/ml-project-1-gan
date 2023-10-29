@@ -41,10 +41,13 @@ def kbest(x_train, k, fscores):
 
 # Defining the test parameters
 
-lambdas = np.logspace(-5, 0, num=10)
+lambdas_n = np.logspace(-5, 0, num=10)
+lambdas_p = np.logspace(-12, 0, num=10)
 gammas = np.logspace(-4, 1, num=10)
-k_list = [20, 150, 300]
-max_iter_list = [20, 100, 1000]
+k_list = [50, 150, 300]
+max_iter_list = [20, 100, 500, 1000]
+degre = [1, 2, 3]
+threshold = [0.4, 0.5, 0.6]
 
 
 
@@ -70,10 +73,12 @@ max_iter_best = 0
 f_score_best = 0
 lambda_best = 0
 gamma_best = 0
+threshold_best = 0
+degre_best = 0
 
 compteur = 1
 
-nb_iters = len(k_list)*len(gammas)*len(lambdas)*len(max_iter_list)
+nb_iters = len(k_list)*len(gammas)*10*len(max_iter_list)*len(threshold)*len(degre)
 
 for k in k_list:
 
@@ -82,42 +87,43 @@ for k in k_list:
 
     X_trk = standardize(X_trk)
     X_tek = standardize(X_tek)
-    
-    y_train, tx_train = build_model_data(X_trk, y_train)
 
-    w = np.zeros(np.shape(tx_train)[1])
+    for t in threshold:
+        for d in degre:
+            lambdas = lambdas_p
+            pol = True
+            X_form = X_tek
+            if d==1:
+                y_train, tx_train = build_model_data(X_trk, y_train)
+                pol = False
+                lambdas = lambdas_n
+            else:
+                tx_train = build_poly(X_trk, d)
+                X_form = build_poly(X_tek, d)
+            w = np.zeros(np.shape(tx_train)[1])
 
-    for max_iter in max_iter_list:
-        for i, lambda_ in enumerate(lambdas):
-            for j, gamma in enumerate(gammas):
-                print(f"Grid optimisation iteration {compteur}/{nb_iters}")
-                w_opti, _ = reg_logistic_regression(y_train, tx_train, lambda_, w, max_iter, gamma)
-                y_pred = predict(X_tek, w_opti, proba=True)
-                f = f1_score(y_test, y_pred)
-                if f > f_score_best:
-                    lambda_best, gamma_best, max_iter_best, k_best, f_score_best = lambda_, gamma, max_iter, k, f
-                compteur += 1
+            for max_iter in max_iter_list:
+                for i, lambda_ in enumerate(lambdas):
+                    for j, gamma in enumerate(gammas):
+                        print(f"Grid optimisation iteration {compteur}/{nb_iters}")
+                        w_opti, _ = reg_logistic_regression(y_train, tx_train, lambda_, w, max_iter, gamma)
+                        y_pred = predict(X_form, w_opti, proba=True, threshold=t, poly=pol)
+                        f = f1_score(y_test, y_pred)
+                        if f > f_score_best:
+                            lambda_best, gamma_best, max_iter_best, k_best, f_score_best, threshold_best, degre_best = lambda_, gamma, max_iter, k, f, t, d
+                        compteur += 1
                
           
 
-X_trk = kbest(X, k_best, fscores_k)
-X_assessment = kbest(X_assessment, k_best, fscores_k)
-X_assessment = standardize(X_assessment)
 
-Y, tx_train = build_model_data(X_trk, Y)
+print(f"End of grid optimisation : best parameters are k = {k_best}, max_iter = {max_iter_best}, lambda = {lambda_best} anf gamma = {gamma_best}")
 
-w_opti, _ = reg_logistic_regression(Y, tx_train, lambda_best, w, max_iter_best, gamma_best)
-y_pred = predict(X_assessment, w_opti, proba = True)
-
-create_csv_submission(ids, y_pred, "rlr-full-tuned_grid.csv")
-
-print(f"End of optimisation : best parameters are k = {k_best}, max_iter = {max_iter_best}, lambda = {lambda_best} anf gamma = {gamma_best}")
-
-
+"""
 ## LOCAL SEARCH ###################################################################
 # Improve this fine-tuning with kangaroo-search
 # Now we will only try to maximize f-score
 
+"""
 """
 The idea is to search randomly around the position of grid search optimum.
 At each iteration (maximum number of iterations : max_jumps) :
@@ -128,7 +134,7 @@ At each iteration (maximum number of iterations : max_jumps) :
     - Keep in points only nb_points (those with best f-scores) 
     - Number of trainings : nb_points*max_jumps*9 (ici le 9 vient du fait que l'on optimise 2 paramètres : 3² = 9)
 """
-
+"""
 print("Entering local-search fine-tuning - gamma and lambda only")
 
 k = k_best
@@ -206,11 +212,23 @@ gamma = points[0][1]
 
     
 print(f"After local search, new best f-score : {best_f}, for lambda = {lambda_} and gamma = {gamma}")
-
+"""
 ## SAVING PREDICITION FOR BEST RESULT #######################################################
 
-w_opti, _ = reg_logistic_regression(y_train, tx_train, lambda_, w, max_iter, gamma)
-y_pred = predict(X_assessment, w_opti, proba = True)
+X_trk = kbest(X, k_best, fscores_k)
+X_assessment = kbest(X_assessment, k_best, fscores_k)
+X_assessment = standardize(X_assessment)
 
-create_csv_submission(ids, y_pred, "rlr-full-tuned-local.csv")
+pol = True
+if degre_best==1:
+    Y, tx_train = build_model_data(X_trk, Y)
+    pol = False
+else:
+    tx_train = build_poly(X_trk, degre_best)
+    X_assessment = build_poly(X_assessment, degre_best)
+
+w_opti, _ = reg_logistic_regression(y_train, tx_train, lambda_best, w, max_iter_best, gamma_best)
+y_pred = predict(X_assessment, w_opti, proba = True, poly = pol, threshold=threshold_best)
+
+create_csv_submission(ids, y_pred, "rlr-full-tuned.csv")
 
