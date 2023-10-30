@@ -47,7 +47,7 @@ r_ = [0.0001 * i for i in range(8500, 9000, 1)]  # Threshold in quantile
 
 
 def gradient_descent_finetuning():
-    #function used to fine tune the (stochastic) gradient descent methods
+    #function used to fine tune the gradient descent methods
     x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
     test_ids = test_ids.astype(dtype=int)
     f1_ = 0
@@ -102,6 +102,61 @@ def gradient_descent_finetuning():
     w, loss = mean_squared_error_gd(yb_train2, tx, initial_w, mi, gamma)
     y_pred = predict(x_test2, w, threshold=r, proba=False, poly=False)
     create_csv_submission(test_ids, y_pred, "gd_fine_tuned.csv")
+    
+def stochastic_gradient_descent_finetuning():
+    #function used to fine tune the stochastic gradient descent methods
+    x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
+    test_ids = test_ids.astype(dtype=int)
+    f1_ = 0
+    params = [0, 0, 0, 0, 0, 0]
+    
+    x_train, x_test, y_train, y_test = split_data(y_train, x_train, 0.75)
+
+    for k in k_:
+    x_train2, yb_train2, x_test2 = partialPreprocessing(
+        x_train, x_test, y_train
+    )
+    x_train2 = kbest(x_train2, k, fscores_k)
+    x_test2 = kbest(x_test2, k, fscores_k)
+    x_train2 = standardize(x_train2)
+    x_test2 = standardize(x_test2)
+    
+    for d in d_:
+        tx = build_poly(x_train2, degree=d)
+        tx_test = build_poly(x_test2, degree=d)
+        initial_w = np.ones(tx.shape[1])
+        for mi in max_iters:
+        for l in learn_rate:
+            w, _ = mean_squared_error_sgd(yb_train2, tx, initial_w, mi, l)
+            for r in r_:
+            y_pred = predict(
+                tx_test, w, threshold=r, proba=False, poly=True
+            )
+            f1 = f1_score(y_test, y_pred)
+            if f1 > f1_:
+                f1_ = f1
+                params = [k, d, mi, l, r]
+                print(params, f1)
+
+    print("Best hyperparameters and associated F1 score: ", params, f1_)
+
+    print(params, f1_)           
+    x_train2, yb_train2, x_test2 = partialPreprocessing(
+    x_train, x_test, y_train
+    )
+    k = params[0]
+    mi = params[2]
+    gamma = params[3]
+    r = params[4]
+    x_train2 = kbest(x_train2, k, fscores_k)
+    x_test2 = kbest(x_test2, k, fscores_k)
+    x_train2 = standardize(x_train2)
+    x_test2 = standardize(x_test2)
+    yb_train2, tx = build_model_data(x_train2, yb_train2)
+    initial_w = np.zeros(tx.shape[1])
+    w, loss = mean_squared_error_gd(yb_train2, tx, initial_w, mi, gamma)
+    y_pred = predict(x_test2, w, threshold=r, proba=False, poly=False)
+    create_csv_submission(test_ids, y_pred, "sgd_fine_tuned.csv")
 
 def ridge_regression_finetuning():
     x_train, x_test, y_train, _, test_ids = load_csv_data("dataset/")
